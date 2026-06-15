@@ -1481,7 +1481,7 @@ function openEditContract(id){
   editingId=id;
   document.getElementById('contract-modal-title').innerHTML='<i class="fa-solid fa-pen" style="color:var(--blue);margin-right:8px"></i>Chỉnh sửa hợp đồng';
   document.getElementById('f-id').value=c.id;
-  document.getElementById('f-id').disabled=true;
+  // Không disable - cho phép sửa số HĐ
   document.getElementById('f-type').value=c.type;
   document.getElementById('f-customer').value=c.customer;
   document.getElementById('f-val-before').value=c.valBefore||'';
@@ -1529,12 +1529,23 @@ async function saveContract(){
     note:document.getElementById('f-note').value,
     files:getAttachedFiles('f-file-list')
   };
-  if(!editingId && contracts.find(x=>x.id===id)){alert('Số hợp đồng đã tồn tại!');return;}
+  // Kiểm tra trùng số HĐ (cả thêm mới lẫn đổi số khi sửa)
+  const dupCheck=contracts.find(x=>x.id===id&&x.id!==editingId);
+  if(dupCheck){
+    showToast('⚠️ Số hợp đồng "'+id+'" đã tồn tại! Vui lòng dùng số khác.','err');
+    document.getElementById('f-id').focus();
+    document.getElementById('f-id').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('f-id').style.borderColor='',3000);
+    return;
+  }
   showLoader(true);
   try{
+    // Nếu đổi số HĐ → xóa record cũ, tạo mới
+    if(editingId && editingId!==id){
+      await sbDelete('kc_contracts', editingId);
+    }
     await sbUpsert('kc_contracts', dbC(c));
     await loadAllData();
-    document.getElementById('f-id').disabled=false;
     closeModal('modal-contract');
     renderAll();
     updateContractDatalists();
@@ -1701,7 +1712,7 @@ function openEditSupplier(id){
   editingId=id;
   document.getElementById('sup-modal-title').textContent='Chỉnh sửa hợp đồng nhà cung cấp';
   document.getElementById('sup-id').value=s.id;
-  document.getElementById('sup-id').disabled=true;
+  // Không disable - cho phép sửa số HĐ NCC
   document.getElementById('sup-name').value=s.supplierName||'';
   const stdTypes=['Cung cấp thiết bị','Dịch vụ lắp đặt'];
   if(stdTypes.includes(s.type)){
@@ -1748,7 +1759,14 @@ async function saveSupplier(){
   if(!id){alert('Vui lòng nhập số hợp đồng!');return;}
   const supplierName=document.getElementById('sup-name').value.trim();
   if(!supplierName){alert('Vui lòng nhập tên nhà cung cấp!');return;}
-  if(!editingId&&suppliers.find(x=>x.id===id)){alert('Số hợp đồng đã tồn tại!');return;}
+  const dupCheckS=suppliers.find(x=>x.id===id&&x.id!==editingId);
+  if(dupCheckS){
+    showToast('⚠️ Số hợp đồng NCC "'+id+'" đã tồn tại! Vui lòng dùng số khác.','err');
+    document.getElementById('sup-id').focus();
+    document.getElementById('sup-id').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('sup-id').style.borderColor='',3000);
+    return;
+  }
   const typeEl=document.getElementById('sup-type');
   const type=typeEl.value==='other'?'other':typeEl.value;
   const statusEl=document.getElementById('sup-status');
@@ -1774,9 +1792,11 @@ async function saveSupplier(){
   };
   showLoader(true);
   try{
+    if(editingId && editingId!==id){
+      await sbDelete('kc_suppliers', editingId);
+    }
     await sbUpsert('kc_suppliers', dbS(s));
     await loadAllData();
-    document.getElementById('sup-id').disabled=false;
     closeModal('modal-supplier');
     renderAll();
     showToast('Đã lưu hợp đồng NCC ✓','ok');
