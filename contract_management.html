@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý Hợp đồng — Kiên Thịnh Contract</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#B5D4F4;
+  --green:#3B6D11;--green-light:#EAF3DE;--green-mid:#C0DD97;
+  --red:#A32D2D;--red-light:#FCEBEB;--red-mid:#F09595;
+  --amber:#854F0B;--amber-light:#FAEEDA;--amber-mid:#FAC775;
+  --purple:#3C3489;--purple-light:#EEEDFE;
+  --teal:#085041;--teal-light:#E1F5EE;
+  --bg:#F7F8FA;--surface:#FFFFFF;--border:#E2E6EA;--border2:#CDD3DA;
+  --text:#1A202C;--text2:#5A6675;--text3:#8A95A1;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.12);
+  --radius:8px;--radius-sm:5px;--radius-lg:12px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px}
+
+/* ── AUTH ── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f2d5c 0%,#185FA5 60%,#2980d9 100%)}
+.auth-card{background:var(--surface);border-radius:var(--radius-lg);padding:2.5rem;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+.auth-logo{text-align:center;margin-bottom:2rem}
+.auth-logo .logo-icon{width:56px;height:56px;background:var(--blue);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:24px;margin-bottom:.75rem}
+.auth-logo h1{font-size:22px;font-weight:700;color:var(--text)}
+.auth-logo p{font-size:13px;color:var(--text2);margin-top:3px}
+.auth-tabs{display:flex;gap:2px;background:#F0F2F5;border-radius:var(--radius-sm);padding:3px;margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:7px;text-align:center;font-size:13px;cursor:pointer;border-radius:4px;color:var(--text2);border:none;background:none;font-family:var(--font);transition:.15s}
+.auth-tab.active{background:var(--surface);color:var(--blue);font-weight:600;box-shadow:var(--shadow)}
+.auth-form-wrap{display:none}.auth-form-wrap.active{display:block}
+.form-field{margin-bottom:1rem}
+.form-field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--surface);font-family:var(--font);transition:.15s;outline:none}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.12)}
+.form-field textarea{resize:vertical;min-height:70px}
+.btn-primary{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s}
+.btn-primary:hover{background:#1450a0}
+.auth-msg{font-size:12px;color:var(--red);margin-bottom:.75rem;padding:8px 10px;background:var(--red-light);border-radius:var(--radius-sm);display:none}
+.auth-msg.show{display:block}
+.auth-msg.success{color:var(--green);background:var(--green-light)}
+
+/* ── LAYOUT ── */
+#app{display:none;height:100vh;overflow:hidden}
+#app.visible{display:flex}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh}
+.sidebar-logo{padding:1.25rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-logo .s-icon{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
+.sidebar-logo span{font-size:15px;font-weight:700;color:var(--text)}
+.sidebar-user{padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+.su-name{font-size:13px;font-weight:600;color:var(--text)}
+.su-role{font-size:11px;color:var(--text2);margin-top:1px}
+.su-badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;background:var(--amber-light);color:var(--amber);font-weight:600;margin-top:3px}
+.su-badge.admin{background:var(--blue-light);color:var(--blue)}
+.nav-section{padding:.5rem 0;border-bottom:1px solid var(--border);flex:1}
+.nav-label{font-size:10px;font-weight:700;color:var(--text3);padding:.5rem 1rem .25rem;text-transform:uppercase;letter-spacing:.6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 1rem;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.1s;margin:1px 6px;border-radius:6px}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--blue-light);color:var(--blue)}
+.nav-item .ni-icon{width:18px;text-align:center;font-size:14px}
+.nav-bottom{padding:.75rem}
+.nav-bottom .nav-item{margin:1px 0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:.875rem 1.5rem;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-title small{font-size:12px;color:var(--text2);font-weight:400;margin-left:6px}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+.page{display:none}.page.active{display:block}
+
+/* ── CARDS / STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1rem;box-shadow:var(--shadow)}
+.sc-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.sc-value{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.sc-sub{font-size:11px;color:var(--text2);margin-top:4px}
+.sc-value.warn{color:var(--amber)}.sc-value.danger{color:var(--red)}.sc-value.ok{color:var(--green)}.sc-value.blue{color:var(--blue)}
+
+/* ── ALERTS ── */
+.alert-area{margin-bottom:1rem}
+.alert{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--radius-sm);font-size:12.5px;margin-bottom:6px;border:1px solid}
+.alert-danger{background:var(--red-light);color:#7a1e1e;border-color:var(--red-mid)}
+.alert-warn{background:var(--amber-light);color:#5c3003;border-color:var(--amber-mid)}
+.alert i{margin-top:1px;flex-shrink:0}
+
+/* ── TABLE ── */
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:var(--surface);font-family:var(--font);outline:none;transition:.15s}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--blue)}
+.toolbar input{flex:1;min-width:180px}
+.btn-add{padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:.15s}
+.btn-add:hover{background:#1450a0}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:4px;cursor:pointer;font-family:var(--font);border:1.5px solid var(--border);background:var(--surface);color:var(--text2);transition:.15s}
+.btn-sm:hover{border-color:var(--blue);color:var(--blue)}
+.btn-danger-sm{border-color:var(--red-mid);color:var(--red)}
+.btn-danger-sm:hover{background:var(--red-light);border-color:var(--red)}
+.tbl-wrap{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.tbl-wrap table{width:100%;border-collapse:collapse;font-size:13px}
+.tbl-wrap th{padding:9px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);background:#F7F8FA;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+.tbl-wrap td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.tbl-wrap tr:last-child td{border-bottom:none}
+.tbl-wrap tr:hover td{background:#FAFBFC}
+.tbl-wrap .warn-row td{background:#FAEEDA22}
+.tbl-wrap .danger-row td{background:#FCEBEB22}
+.tbl-wrap .empty{text-align:center;padding:2.5rem;color:var(--text2);font-size:13px}
+.link-cell{color:var(--blue);font-weight:600;cursor:pointer}.link-cell:hover{text-decoration:underline}
+.icon-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:4px;color:var(--text2);font-size:13px;transition:.15s;line-height:1}
+.icon-btn:hover{background:var(--bg);color:var(--text)}
+.icon-btn.del:hover{color:var(--red);background:var(--red-light)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-cctb{background:var(--purple-light);color:var(--purple)}
+.b-duan{background:var(--blue-light);color:#0C447C}
+.b-dichvu{background:var(--teal-light);color:var(--teal)}
+.b-active{background:var(--green-light);color:var(--green)}
+.b-pending{background:var(--amber-light);color:var(--amber)}
+.b-done{background:var(--blue-light);color:var(--blue)}
+.b-expired{background:var(--red-light);color:var(--red)}
+.b-overdue{background:var(--red-light);color:var(--red)}
+.b-partial{background:var(--amber-light);color:var(--amber)}
+.b-paid{background:var(--green-light);color:var(--green)}
+.b-warn{background:var(--amber-light);color:var(--amber)}
+.b-purple{background:var(--purple-light);color:var(--purple)}
+.b-invoice-no{background:#F0F2F5;color:var(--text2)}
+.b-invoice-yes{background:var(--green-light);color:var(--green)}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:580px;padding:1.75rem;position:relative;box-shadow:var(--shadow-lg);margin:auto}
+.modal-box.wide{max-width:680px}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-hdr h2{font-size:16px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 6px;border-radius:4px;transition:.15s;line-height:1}
+.modal-close:hover{background:var(--bg);color:var(--text)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg-full{grid-column:1/-1}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)}
+.btn-cancel{padding:8px 16px;background:none;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:var(--font);color:var(--text);transition:.15s}
+.btn-cancel:hover{border-color:var(--text2)}
+.btn-save{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn-save:hover{background:#1450a0}
+.btn-save.danger{background:var(--red)}.btn-save.danger:hover{background:#8a2020}
+
+/* ── DETAIL VIEW ── */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.di label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:3px}
+.di span{font-size:13px;color:var(--text);font-weight:500}
+.section-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:1.25rem 0 .5rem;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.prog-bar{height:5px;background:var(--bg);border-radius:3px;margin:.5rem 0}
+.prog-fill{height:100%;border-radius:3px;background:var(--blue)}
+
+/* ── SETTINGS ── */
+.settings-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:1.5rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.settings-card h3{font-size:14px;font-weight:700;margin-bottom:1rem;color:var(--text);padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.sr-label{font-size:13px;color:var(--text)}
+.sr-value{font-size:13px;color:var(--text2)}
+
+/* ── ADMIN PANEL ── */
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);background:#F7F8FA;border-bottom:1px solid var(--border);text-transform:uppercase}
+.admin-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot-green{background:var(--green)}.dot-amber{background:#F59E0B}.dot-gray{background:var(--text3)}
+
+/* ── FILE ATTACH ── */
+.file-drop{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:.75rem;text-align:center;cursor:pointer;transition:.15s;font-size:12px;color:var(--text2)}
+.file-drop:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+.file-list{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.file-item{display:flex;align-items:center;gap:6px;padding:5px 8px;background:#F7F8FA;border-radius:4px;font-size:12px}
+.file-item i{color:var(--blue)}
+.file-item .fi-remove{margin-left:auto;cursor:pointer;color:var(--text2)}.file-item .fi-remove:hover{color:var(--red)}
+
+
+/* Contract picker table in modal */
+.contract-picker{margin-top:6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);max-height:180px;overflow-y:auto;display:none}
+.contract-picker.show{display:block}
+.cp-row{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;transition:.1s}
+.cp-row:last-child{border-bottom:none}
+.cp-row:hover{background:var(--blue-light)}
+.cp-row .cp-id{font-weight:600;color:var(--blue);min-width:140px}
+.cp-row .cp-cust{color:var(--text2);font-size:12px}
+.cp-empty{padding:12px;text-align:center;color:var(--text2);font-size:12px}
+
+
+/* Sortable headers */
+.th-sort{cursor:pointer;user-select:none;white-space:nowrap}
+.th-sort:hover{color:var(--blue);background:#F0F5FF}
+.sort-icon{display:inline-block;margin-left:4px;font-size:10px;opacity:.5}
+.sort-icon.asc{opacity:1;color:var(--blue)}
+.sort-icon.desc{opacity:1;color:var(--blue)}
+/* Excel buttons */
+.btn-excel{padding:6px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:5px;background:var(--surface);color:var(--text2);transition:.15s}
+.btn-excel:hover{border-color:var(--green);color:var(--green);background:var(--green-light)}
+.btn-excel.import:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+/* Stage badge */
+.b-stage-gh{background:#EEF2FF;color:#3730A3}
+.b-stage-ld{background:#FFF7ED;color:#C2410C}
+.b-stage-ct{background:#F0FDF4;color:#15803D}
+.b-stage-ht{background:var(--green-light);color:var(--green)}
+/* Deadline warning */
+.deadline-warn{color:var(--amber);font-weight:600;font-size:12px}
+.deadline-danger{color:var(--red);font-weight:600;font-size:12px}
+
+
+/* Supplier progress status */
+.b-progress-ontime{background:var(--green-light);color:var(--green)}
+.b-progress-late{background:var(--red-light);color:var(--red)}
+.b-progress-pending{background:#F0F2F5;color:var(--text2)}
+.b-status-sup{background:var(--blue-light);color:#0C447C}
+
+
+/* ── REPORT / PRINT ── */
+.rp-foot-row td{font-weight:700;background:#F7F8FA;font-size:13px}
+#print-report-area{display:none}
+@media print{
+  body *{visibility:hidden}
+  #print-report-area, #print-report-area *{visibility:visible}
+  #print-report-area{display:block;position:absolute;left:0;top:0;width:100%;padding:24px;font-family:var(--font);color:#1A202C}
+  .pr-header{text-align:center;margin-bottom:20px;border-bottom:3px solid #185FA5;padding-bottom:14px}
+  .pr-header h1{font-size:20px;font-weight:800;color:#185FA5;margin-bottom:4px}
+  .pr-header p{font-size:12px;color:#5A6675}
+  .pr-meta{display:flex;justify-content:space-between;font-size:11px;color:#5A6675;margin-bottom:16px}
+  .pr-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+  .pr-summary-box{border:1.5px solid #E2E6EA;border-radius:8px;padding:10px 14px}
+  .pr-summary-box .pr-label{font-size:10px;color:#5A6675;text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px}
+  .pr-summary-box .pr-value{font-size:16px;font-weight:800}
+  .pr-section-title{font-size:13px;font-weight:800;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid #185FA5;color:#185FA5}
+  .pr-table{width:100%;border-collapse:collapse;font-size:10.5px;margin-bottom:10px}
+  .pr-table th{background:#185FA5;color:#fff;padding:6px 8px;text-align:left;font-weight:700}
+  .pr-table td{padding:5px 8px;border-bottom:1px solid #E2E6EA}
+  .pr-table tr:nth-child(even) td{background:#F7F8FA}
+  .pr-table tfoot td{font-weight:800;background:#EAF1FB!important;border-top:2px solid #185FA5}
+  .pr-footer{margin-top:24px;font-size:10px;color:#8A95A1;text-align:center;border-top:1px solid #E2E6EA;padding-top:10px}
+  @page{size:A4 landscape;margin:12mm}
+}
+
+
+/* Google Drive */
+.btn-drive{padding:6px 12px;border:1.5px solid #E2E6EA;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:5px;background:#fff;color:#5A6675;transition:.15s}
+.btn-drive:hover{border-color:#4285F4;color:#4285F4;background:#EEF3FE}
+.btn-drive.connected{border-color:#34A853;color:#34A853;background:#E8F5E9}
+.drive-status{font-size:11px;color:var(--text2);padding:4px 8px;background:#F7F8FA;border-radius:4px;display:inline-flex;align-items:center;gap:4px}
+
+/* ── MISC ── */
+.days-danger{color:var(--red);font-size:12px;font-weight:600}
+.days-warn{color:var(--amber);font-size:12px;font-weight:600}
+.days-ok{color:var(--text2);font-size:12px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.page-header h2{font-size:18px;font-weight:700;color:var(--text)}
+.pending-badge{background:var(--amber-light);color:var(--amber);font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon"><i class="fa-solid fa-file-contract"></i></div>
+      <h1>Kiên Thịnh Contract</h1>
+      <p>Hệ thống quản lý hợp đồng</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Đăng nhập</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Đăng ký</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="form-login" class="auth-form-wrap active">
+      <div id="login-msg" class="auth-msg"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="l-email" placeholder="email@congty.com"></div>
+      <div class="form-field"><label>Mật khẩu</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+      <p style="font-size:12px;color:var(--text2);margin-top:1rem;text-align:center">Demo: <b>admin@test.com</b> / <b>123456</b></p>
+    </div>
+    <!-- REGISTER -->
+    <div id="form-register" class="auth-form-wrap">
+      <div id="reg-msg" class="auth-msg"></div>
+      <div class="form-field"><label>Họ và tên</label><input type="text" id="r-name" placeholder="Nguyễn Văn A"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="r-email" placeholder="email@congty.com"></div>
+      <div class="form-field"><label>Mật khẩu</label><input type="password" id="r-pass" placeholder="Tối thiểu 6 ký tự"></div>
+      <button class="btn-primary" onclick="doRegister()">Đăng ký tài khoản</button>
+      <p style="font-size:12px;color:var(--text2);margin-top:.75rem;text-align:center">Sau khi đăng ký, admin sẽ duyệt tài khoản</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="s-icon"><i class="fa-solid fa-file-contract"></i></div>
+      <span>Kiên Thịnh Contract</span>
+    </div>
+    <div class="sidebar-user" id="sidebar-user"></div>
+    <div class="nav-section">
+      <div class="nav-label">Menu chính</div>
+      <div class="nav-item active" onclick="goPage('overview')" id="nav-overview">
+        <span class="ni-icon"><i class="fa-solid fa-chart-pie"></i></span> Tổng quan
+      </div>
+      <div class="nav-item" onclick="goPage('contracts')" id="nav-contracts">
+        <span class="ni-icon"><i class="fa-solid fa-file-lines"></i></span> Hợp đồng
+      </div>
+      <div class="nav-item" onclick="goPage('acceptance')" id="nav-acceptance">
+        <span class="ni-icon"><i class="fa-solid fa-clipboard-check"></i></span> Nghiệm thu
+      </div>
+      <div class="nav-item" onclick="goPage('debt')" id="nav-debt">
+        <span class="ni-icon"><i class="fa-solid fa-coins"></i></span> Công nợ
+      </div>
+      <div class="nav-item" onclick="goPage('warranty')" id="nav-warranty">
+        <span class="ni-icon"><i class="fa-solid fa-shield-halved"></i></span> Bảo hành
+      </div>
+      <div class="nav-item" onclick="goPage('suppliers')" id="nav-suppliers">
+        <span class="ni-icon"><i class="fa-solid fa-truck-ramp-box"></i></span> HĐ Nhà cung cấp
+      </div>
+      <div class="nav-item" onclick="goPage('report')" id="nav-report">
+        <span class="ni-icon"><i class="fa-solid fa-chart-line"></i></span> Báo cáo Thu/Chi
+      </div>
+    </div>
+    <div class="nav-bottom">
+      <div id="nav-admin-item" style="display:none">
+        <div class="nav-item" onclick="goPage('admin')" id="nav-admin">
+          <span class="ni-icon"><i class="fa-solid fa-users-cog"></i></span> Quản lý TK <span id="pending-count" class="pending-badge" style="display:none"></span>
+        </div>
+      </div>
+      <div class="nav-item" onclick="goPage('settings')" id="nav-settings">
+        <span class="ni-icon"><i class="fa-solid fa-gear"></i></span> Cài đặt
+      </div>
+      <div class="nav-item" onclick="doLogout()">
+        <span class="ni-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Đăng xuất
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="topbar">
+      <div id="topbar-title" class="topbar-title">Tổng quan</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn-add" id="topbar-add-btn" style="display:none" onclick="openAddModal()"><i class="fa-solid fa-plus"></i> Thêm hợp đồng</button>
+        <div id="drive-status-bar"></div>
+        <button class="btn-drive" id="btn-drive-connect" onclick="driveSignIn()" title="Kết nối Google Drive">
+          <i class="fa-brands fa-google-drive"></i> Kết nối Drive
+        </button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ═══ PAGE: OVERVIEW ═══ -->
+      <div id="page-overview" class="page active">
+        <div id="alert-area" class="alert-area"></div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="tbl-wrap">
+            <div style="padding:.875rem 1rem;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)"><i class="fa-solid fa-clock" style="color:var(--amber);margin-right:6px"></i>Hợp đồng sắp hết hạn</div>
+            <table><thead><tr><th>Mã HĐ</th><th>Khách hàng</th><th>Còn lại</th></tr></thead>
+            <tbody id="ov-expiring"></tbody></table>
+          </div>
+          <div class="tbl-wrap">
+            <div style="padding:.875rem 1rem;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)"><i class="fa-solid fa-triangle-exclamation" style="color:var(--red);margin-right:6px"></i>Công nợ quá hạn</div>
+            <table><thead><tr><th>Mã HĐ</th><th>Khách hàng</th><th>Còn lại</th></tr></thead>
+            <tbody id="ov-overdue-debt"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: CONTRACTS ═══ -->
+      <div id="page-contracts" class="page">
+        <div class="toolbar">
+          <input type="text" id="sc-q" placeholder="Tìm mã, tên, khách hàng..." oninput="renderContracts()">
+          <select id="sc-type" onchange="renderContracts()">
+            <option value="">Tất cả loại</option>
+            <option value="CCTB">Cung cấp thiết bị</option>
+            <option value="Dự án">Dự án</option>
+            <option value="Dịch vụ">Dịch vụ</option>
+          </select>
+          <select id="sc-st" onchange="renderContracts()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="active">Đang thực hiện</option>
+            <option value="pending">Chờ ký</option>
+            <option value="done">Hoàn thành</option>
+            <option value="expired">Hết hạn</option>
+          </select>
+          <button class="btn-add" onclick="openAddModal()"><i class="fa-solid fa-plus"></i> Thêm hợp đồng</button>
+          <button class="btn-excel" onclick="exportContracts()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
+        </div>
+        <div class="tbl-wrap" style="overflow-x:auto">
+          <table style="min-width:900px">
+            <thead><tr>
+              <th class="th-sort" onclick="sortState={col:'id',dir:sortState.col==='id'&&sortState.dir==='asc'?'desc':'asc'};renderContracts()">Số HĐ</th>
+              <th>Loại</th>
+              <th class="th-sort" onclick="sortState={col:'customer',dir:sortState.col==='customer'&&sortState.dir==='asc'?'desc':'asc'};renderContracts()">Khách hàng</th>
+              <th class="th-sort" onclick="sortState={col:'valBefore',dir:sortState.col==='valBefore'&&sortState.dir==='asc'?'desc':'asc'};renderContracts()">GT trước VAT</th>
+              <th class="th-sort" onclick="sortState={col:'valAfter',dir:sortState.col==='valAfter'&&sortState.dir==='asc'?'desc':'asc'};renderContracts()">GT sau VAT</th>
+              <th class="th-sort" onclick="sortState={col:'start',dir:sortState.col==='start'&&sortState.dir==='asc'?'desc':'asc'};renderContracts()">Hiệu lực</th>
+              <th class="th-sort" onclick="sortState={col:'expiry',dir:sortState.col==='expiry'&&sortState.dir==='asc'?'desc':'asc'};renderContracts()">Hết hạn</th>
+              <th>Thanh toán</th><th>Trạng thái</th><th>Còn lại</th><th></th>
+            </tr></thead>
+            <tbody id="tb-contracts"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: ACCEPTANCE ═══ -->
+      <div id="page-acceptance" class="page">
+        <div class="toolbar">
+          <input type="text" id="sa-q" placeholder="Tìm số HĐ, khách hàng..." oninput="renderAcceptance()">
+          <select id="sa-st" onchange="renderAcceptance()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="inprogress">Đang triển khai</option>
+            <option value="done">Hoàn thành</option>
+          </select>
+          <button class="btn-add" onclick="openAccModal()"><i class="fa-solid fa-plus"></i> Thêm nghiệm thu</button>
+          <button class="btn-excel" onclick="exportAcceptances()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
+        </div>
+        <div class="tbl-wrap" style="overflow-x:auto">
+          <table style="min-width:900px">
+            <thead><tr>
+              <th class="th-sort" onclick="sortState={col:'cid',dir:sortState.col==='cid'&&sortState.dir==='asc'?'desc':'asc'};renderAcceptance()">Số HĐ<span id="si-a-cid"></span></th>
+              <th>Loại</th>
+              <th class="th-sort" onclick="sortState={col:'customer_',dir:sortState.col==='customer_'&&sortState.dir==='asc'?'desc':'asc'};renderAcceptance()">Khách hàng</th>
+              <th>GT sau VAT</th><th>Điều kiện TT</th><th>Hết hạn</th>
+              <th>Giai đoạn</th><th>Tình trạng</th>
+              <th class="th-sort" onclick="sortState={col:'delivery',dir:sortState.col==='delivery'&&sortState.dir==='asc'?'desc':'asc'};renderAcceptance()">Ngày giao hàng</th>
+              <th>Ghi chú</th><th></th>
+            </tr></thead>
+            <tbody id="tb-acceptance"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: DEBT ═══ -->
+      <div id="page-debt" class="page">
+        <div class="toolbar">
+          <input type="text" id="sd-q" placeholder="Tìm số HĐ, khách hàng..." oninput="renderDebt()">
+          <select id="sd-inv" onchange="renderDebt()">
+            <option value="">Tất cả hóa đơn</option>
+            <option value="no">Chưa xuất</option>
+            <option value="yes">Đã xuất</option>
+          </select>
+          <button class="btn-add" onclick="openDebtModal()"><i class="fa-solid fa-plus"></i> Thêm công nợ</button>
+          <button class="btn-excel" onclick="exportDebts()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
+        </div>
+        <div class="tbl-wrap" style="overflow-x:auto">
+          <table style="min-width:1000px">
+            <thead><tr>
+              <th class="th-sort" onclick="sortState={col:'cid',dir:sortState.col==='cid'&&sortState.dir==='asc'?'desc':'asc'};renderDebt()">Số HĐ</th>
+              <th>Loại</th>
+              <th class="th-sort" onclick="sortState={col:'customer_',dir:sortState.col==='customer_'&&sortState.dir==='asc'?'desc':'asc'};renderDebt()">Khách hàng</th>
+              <th>GT trước VAT</th><th>GT sau VAT</th>
+              <th class="th-sort" onclick="sortState={col:'paid',dir:sortState.col==='paid'&&sortState.dir==='asc'?'desc':'asc'};renderDebt()">Đã thanh toán</th>
+              <th>GT phát sinh</th><th>Còn lại</th>
+              <th class="th-sort" onclick="sortState={col:'paymentDeadline',dir:sortState.col==='paymentDeadline'&&sortState.dir==='asc'?'desc':'asc'};renderDebt()">Hạn TT</th>
+              <th>Hóa đơn</th><th>Ngày xuất HĐ</th><th>Ghi chú</th><th></th>
+            </tr></thead>
+            <tbody id="tb-debt"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: WARRANTY ═══ -->
+      <div id="page-warranty" class="page">
+        <div class="toolbar">
+          <input type="text" id="sw-q" placeholder="Tìm số HĐ, khách hàng..." oninput="renderWarranty()">
+          <select id="sw-st" onchange="renderWarranty()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="active">Còn hiệu lực</option>
+            <option value="expiring">Sắp hết hạn</option>
+            <option value="expired">Hết hạn</option>
+            <option value="none">Không bảo hành</option>
+          </select>
+          <button class="btn-add" onclick="openWarrantyModal()"><i class="fa-solid fa-plus"></i> Thêm bảo hành</button>
+          <button class="btn-excel" onclick="exportWarranties()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
+        </div>
+        <div class="tbl-wrap" style="overflow-x:auto">
+          <table style="min-width:900px">
+            <thead><tr>
+              <th class="th-sort" onclick="sortState={col:'cid',dir:sortState.col==='cid'&&sortState.dir==='asc'?'desc':'asc'};renderWarranty()">Số HĐ</th>
+              <th>Loại</th>
+              <th class="th-sort" onclick="sortState={col:'customer_',dir:sortState.col==='customer_'&&sortState.dir==='asc'?'desc':'asc'};renderWarranty()">Khách hàng</th>
+              <th>Thời gian BH</th><th>Ngày giao hàng</th>
+              <th>Hiệu lực BH</th>
+              <th class="th-sort" onclick="sortState={col:'end',dir:sortState.col==='end'&&sortState.dir==='asc'?'desc':'asc'};renderWarranty()">Hết hạn BH</th>
+              <th>GT phải thu</th><th>Trạng thái</th><th>Vấn đề</th><th>Ghi chú</th><th></th>
+            </tr></thead>
+            <tbody id="tb-warranty"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: SUPPLIERS ═══ -->
+      <div id="page-suppliers" class="page">
+        <div class="toolbar">
+          <input type="text" id="ss-q" placeholder="Tìm số HĐ, nhà cung cấp..." oninput="renderSuppliers()">
+          <select id="ss-type" onchange="renderSuppliers()">
+            <option value="">Tất cả loại</option>
+            <option value="Cung cấp thiết bị">Cung cấp thiết bị</option>
+            <option value="Dịch vụ lắp đặt">Dịch vụ lắp đặt</option>
+            <option value="other">Tùy chọn khác</option>
+          </select>
+          <select id="ss-status" onchange="renderSuppliers()">
+            <option value="">Tất cả tình trạng</option>
+            <option value="Chưa đặt hàng">Chưa đặt hàng</option>
+            <option value="Đã đặt hàng">Đã đặt hàng</option>
+            <option value="Đang sản xuất">Đang sản xuất</option>
+            <option value="Đang vận chuyển">Đang vận chuyển</option>
+            <option value="Đã về kho">Đã về kho</option>
+            <option value="Đang giao khách">Đang giao khách</option>
+            <option value="Đã giao hàng">Đã giao hàng</option>
+            <option value="Đã nghiệm thu">Đã nghiệm thu</option>
+            <option value="Hoàn thành">Hoàn thành</option>
+            <option value="other">Khác</option>
+          </select>
+          <button class="btn-add" onclick="openSupplierModal()"><i class="fa-solid fa-plus"></i> Thêm HĐ NCC</button>
+          <button class="btn-excel" onclick="exportSuppliers()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
+        </div>
+        <div class="tbl-wrap" style="overflow-x:auto">
+          <table style="min-width:1100px">
+            <thead><tr>
+              <th class="th-sort" onclick="sortState={col:'id',dir:sortState.col==='id'&&sortState.dir==='asc'?'desc':'asc'};renderSuppliers()">Số HĐ</th>
+              <th class="th-sort" onclick="sortState={col:'supplierName',dir:sortState.col==='supplierName'&&sortState.dir==='asc'?'desc':'asc'};renderSuppliers()">Nhà cung cấp</th>
+              <th>Loại</th>
+              <th class="th-sort" onclick="sortState={col:'valBefore',dir:sortState.col==='valBefore'&&sortState.dir==='asc'?'desc':'asc'};renderSuppliers()">GT trước VAT</th>
+              <th class="th-sort" onclick="sortState={col:'valAfter',dir:sortState.col==='valAfter'&&sortState.dir==='asc'?'desc':'asc'};renderSuppliers()">GT sau VAT</th>
+              <th>Ngày ký</th><th>Hiệu lực</th>
+              <th class="th-sort" onclick="sortState={col:'expectedDate',dir:sortState.col==='expectedDate'&&sortState.dir==='asc'?'desc':'asc'};renderSuppliers()">Dự kiến giao</th>
+              <th>Tình trạng</th><th>Trạng thái tiến độ</th><th>Ghi chú</th><th></th>
+            </tr></thead>
+            <tbody id="tb-suppliers"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: REPORT ═══ -->
+      <div id="page-report" class="page">
+        <div class="toolbar">
+          <select id="rp-period-type" onchange="onReportPeriodTypeChange()">
+            <option value="month">Theo tháng</option>
+            <option value="quarter">Theo quý</option>
+            <option value="year">Theo năm</option>
+          </select>
+          <select id="rp-month" onchange="renderReport()"></select>
+          <select id="rp-quarter" onchange="renderReport()" style="display:none">
+            <option value="1">Quý 1 (T1-T3)</option>
+            <option value="2">Quý 2 (T4-T6)</option>
+            <option value="3">Quý 3 (T7-T9)</option>
+            <option value="4">Quý 4 (T10-T12)</option>
+          </select>
+          <input type="number" id="rp-year" min="2026" value="2026" onchange="renderReport()" oninput="renderReport()" style="width:90px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);outline:none">
+          <button class="btn-excel" onclick="exportReportExcel()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
+          <button class="btn-excel" onclick="printReport()"><i class="fa-solid fa-file-pdf"></i> Xuất PDF</button>
+        </div>
+
+        <div id="rp-summary" class="stats-grid" style="margin-bottom:1.25rem"></div>
+
+        <div class="tbl-wrap" style="margin-bottom:1.25rem">
+          <div style="padding:.875rem 1rem;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px">
+            <i class="fa-solid fa-arrow-trend-up" style="color:var(--green)"></i> Chi tiết HỢP ĐỒNG ĐÃ KÝ (Thu) <span id="rp-rev-count" class="pending-badge" style="background:var(--green-light);color:var(--green)"></span>
+          </div>
+          <div style="overflow-x:auto">
+          <table style="min-width:800px">
+            <thead><tr>
+              <th>STT</th><th>Số HĐ</th><th>Khách hàng</th><th>Loại</th>
+              <th>Ngày hiệu lực</th><th>GT trước VAT</th><th>GT sau VAT</th>
+            </tr></thead>
+            <tbody id="rp-rev-body"></tbody>
+            <tfoot id="rp-rev-foot"></tfoot>
+          </table>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div style="padding:.875rem 1rem;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px">
+            <i class="fa-solid fa-arrow-trend-down" style="color:var(--red)"></i> Chi tiết HỢP ĐỒNG NHÀ CUNG CẤP (Chi) <span id="rp-exp-count" class="pending-badge" style="background:var(--red-light);color:var(--red)"></span>
+          </div>
+          <div style="overflow-x:auto">
+          <table style="min-width:800px">
+            <thead><tr>
+              <th>STT</th><th>Số HĐ</th><th>Nhà cung cấp</th><th>Loại</th>
+              <th>Ngày ký</th><th>GT trước VAT</th><th>GT sau VAT</th>
+            </tr></thead>
+            <tbody id="rp-exp-body"></tbody>
+            <tfoot id="rp-exp-foot"></tfoot>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: ADMIN ═══ -->
+      <div id="page-admin" class="page">
+        <div class="settings-card">
+          <h3><i class="fa-solid fa-users" style="margin-right:6px;color:var(--blue)"></i>Quản lý tài khoản</h3>
+          <div style="overflow-x:auto">
+            <table class="admin-table" id="admin-users-table">
+              <thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead>
+              <tbody id="admin-users-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PAGE: SETTINGS ═══ -->
+      <div id="page-settings" class="page">
+        <div style="max-width:520px">
+          <div class="settings-card">
+            <h3><i class="fa-solid fa-user-circle" style="margin-right:6px;color:var(--blue)"></i>Thông tin tài khoản</h3>
+            <div class="form-field"><label>Họ và tên</label><input type="text" id="set-name"></div>
+            <div class="form-field"><label>Email</label><input type="email" id="set-email" disabled style="background:#F7F8FA;color:var(--text2)"></div>
+            <div class="settings-row"><span class="sr-label">Vai trò</span><span id="set-role" class="sr-value"></span></div>
+            <div class="settings-row"><span class="sr-label">Trạng thái tài khoản</span><span id="set-status" class="sr-value"></span></div>
+            <div style="margin-top:1rem">
+              <button class="btn-add" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Lưu thông tin</button>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3><i class="fa-solid fa-lock" style="margin-right:6px;color:var(--blue)"></i>Đổi mật khẩu</h3>
+            <div id="pw-msg" class="auth-msg" style="display:none"></div>
+            <div class="form-field"><label>Mật khẩu hiện tại</label><input type="password" id="pw-current" placeholder="••••••••"></div>
+            <div class="form-field"><label>Mật khẩu mới</label><input type="password" id="pw-new" placeholder="Tối thiểu 6 ký tự"></div>
+            <div class="form-field"><label>Xác nhận mật khẩu mới</label><input type="password" id="pw-confirm" placeholder="••••••••"></div>
+            <button class="btn-add" onclick="changePassword()"><i class="fa-solid fa-key"></i> Đổi mật khẩu</button>
+          </div>
+          <div class="settings-card">
+            <h3 style="color:var(--red)"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i>Đăng xuất</h3>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Đăng xuất khỏi tài khoản hiện tại trên thiết bị này.</p>
+            <button class="btn-save danger" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất ngay</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ADD/EDIT CONTRACT ═══ -->
+<div class="modal-overlay" id="modal-contract">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <h2 id="contract-modal-title"><i class="fa-solid fa-file-plus" style="color:var(--blue);margin-right:8px"></i>Thêm hợp đồng mới</h2>
+      <button class="modal-close" onclick="closeModal('modal-contract')">&times;</button>
+    </div>
+    <div class="fg">
+      <div class="form-field"><label>Số hợp đồng *</label><input type="text" id="f-id" placeholder="VD: HĐ-2024-001"></div>
+      <div class="form-field"><label>Loại hợp đồng *</label>
+        <select id="f-type">
+          <option value="CCTB">Cung cấp thiết bị</option>
+          <option value="Dự án">Dự án</option>
+          <option value="Dịch vụ">Dịch vụ</option>
+        </select>
+      </div>
+      <div class="form-field fg-full"><label>Khách hàng *</label>
+        <input type="text" id="f-customer" placeholder="Tên khách hàng" list="customer-list" autocomplete="off">
+        <datalist id="customer-list"></datalist>
+      </div>
+      <div class="form-field"><label>Giá trị trước VAT (VNĐ)</label><input type="number" id="f-val-before" placeholder="0" oninput="autoFillAfterVAT()"></div>
+      <div class="form-field"><label>Thuế VAT</label>
+        <select id="f-vat" onchange="autoFillAfterVAT()" style="font-family:var(--font)">
+          <option value="">-- Chọn VAT --</option>
+          <option value="5">5%</option>
+          <option value="8">8%</option>
+          <option value="10">10%</option>
+          <option value="custom">Tùy chọn...</option>
+        </select>
+      </div>
+      <div class="form-field fg-full" id="f-vat-custom-wrap" style="display:none"><label>Thuế VAT tùy chọn (%)</label><input type="number" id="f-vat-custom" placeholder="VD: 7" min="0" max="100" oninput="autoFillAfterVAT()"></div>
+      <div class="form-field"><label>Giá trị sau VAT (VNĐ) <span style="font-size:11px;color:var(--text2);font-weight:400">(tự tính hoặc nhập tay)</span></label><input type="number" id="f-val-after" placeholder="Tự động tính khi chọn VAT"></div>
+      <div class="form-field"><label>Ngày có hiệu lực</label><input type="date" id="f-start" oninput="calcExpiry()"></div>
+      <div class="form-field"><label>Thời gian thực hiện</label>
+        <select id="f-duration" onchange="calcExpiry()">
+          <option value="">-- Chọn --</option>
+          <option value="7">1 tuần (7 ngày)</option>
+          <option value="63">8-10 tuần (~63 ngày)</option>
+          <option value="77">10-12 tuần (~77 ngày)</option>
+          <option value="custom">Tùy chọn (nhập ngày)</option>
+        </select>
+      </div>
+      <div class="form-field" id="f-duration-custom-wrap" style="display:none"><label>Số ngày thực hiện</label><input type="number" id="f-duration-custom" placeholder="VD: 90" oninput="calcExpiry()"></div>
+      <div class="form-field"><label>Ngày hết hạn (tự tính)</label><input type="date" id="f-expiry" placeholder="Tự động tính"></div>
+      <div class="form-field"><label>Điều kiện thanh toán</label>
+        <select id="f-payment" onchange="togglePaymentOther()">
+          <option value="100% trước giao hàng">100% trước giao hàng</option>
+          <option value="Tạm ứng 30% - TT 70% trước giao hàng">Tạm ứng 30% - TT 70% trước giao hàng</option>
+          <option value="Tạm ứng 30% - TT 70% sau giao hàng">Tạm ứng 30% - TT 70% sau giao hàng</option>
+          <option value="other">Tùy chọn khác...</option>
+        </select>
+      </div>
+      <div class="form-field" id="f-payment-other-wrap" style="display:none"><label>Điều kiện thanh toán (nhập tay)</label><input type="text" id="f-payment-other" placeholder="Nhập điều kiện thanh toán"></div>
+      <div class="form-field fg-full"><label>Bản hợp đồng (đính kèm file)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="file-drop" style="flex:1" onclick="document.getElementById('f-files-input').click()"><i class="fa-solid fa-paperclip"></i> Nhấn để đính kèm file (Word/PDF/Excel/Scan, tối đa 50MB)</div>
+          <button class="btn-drive" onclick="drivePickerOpen('f-file-list')" title="Chọn từ Google Drive" type="button"><i class="fa-brands fa-google-drive"></i> Drive</button>
+        </div>
+        <input type="file" id="f-files-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" style="display:none" onchange="handleFileAttach('f-files-input','f-file-list')">
+        <div class="file-list" id="f-file-list"></div>
+      </div>
+      <div class="form-field fg-full"><label>Ghi chú</label><textarea id="f-note" placeholder="Ghi chú thêm..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-contract')">Hủy</button>
+      <button class="btn-save" onclick="saveContract()"><i class="fa-solid fa-check"></i> Lưu hợp đồng</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ACCEPTANCE ═══ -->
+<div class="modal-overlay" id="modal-acceptance">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <h2><i class="fa-solid fa-clipboard-check" style="color:var(--blue);margin-right:8px"></i><span id="acc-modal-title">Thêm nghiệm thu</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-acceptance')">&times;</button>
+    </div>
+    <div class="fg">
+      <div class="form-field fg-full"><label>Số hợp đồng *</label>
+        <div style="display:flex;gap:8px">
+          <select id="a-id" onchange="syncFromContract('a-id','a-type','a-customer','a-val-after','a-payment','a-expiry');document.getElementById('a-picker').classList.remove('show')" style="font-family:var(--font);flex:1">
+            <option value="">-- Chọn số hợp đồng --</option>
+          </select>
+        </div>
+        <div class="contract-picker" id="a-picker"></div>
+      </div>
+      <div class="form-field"><label>Loại hợp đồng</label><input type="text" id="a-type" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field fg-full"><label>Khách hàng</label><input type="text" id="a-customer" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Giá trị sau VAT</label><input type="text" id="a-val-after" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Điều kiện thanh toán</label><input type="text" id="a-payment" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Ngày hết hạn HĐ</label><input type="text" id="a-expiry" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Giai đoạn nghiệm thu</label>
+        <select id="a-stage">
+          <option value="Giao hàng">Giao hàng</option>
+          <option value="Lắp đặt">Lắp đặt</option>
+          <option value="Chạy thử">Chạy thử</option>
+          <option value="Hoàn thành">Hoàn thành</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Tình trạng</label>
+        <select id="a-status">
+          <option value="inprogress">Đang triển khai</option>
+          <option value="done">Hoàn thành</option>
+          <option value="other">Khác (nhập tay)</option>
+        </select>
+      </div>
+      <div class="form-field" id="a-status-other-wrap" style="display:none"><label>Tình trạng (nhập)</label><input type="text" id="a-status-other" placeholder="Nhập tình trạng..."></div>
+      <div class="form-field"><label>Ngày giao hàng</label><input type="date" id="a-delivery"></div>
+      <div class="form-field fg-full"><label>Bản nghiệm thu (đính kèm file)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="file-drop" style="flex:1" onclick="document.getElementById('a-files-input').click()"><i class="fa-solid fa-paperclip"></i> Nhấn để đính kèm file (tối đa 50MB)</div>
+          <button class="btn-drive" onclick="drivePickerOpen('a-file-list')" title="Chọn từ Google Drive" type="button"><i class="fa-brands fa-google-drive"></i> Drive</button>
+        </div>
+        <input type="file" id="a-files-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" style="display:none" onchange="handleFileAttach('a-files-input','a-file-list')">
+        <div class="file-list" id="a-file-list"></div>
+      </div>
+      <div class="form-field fg-full"><label>Ghi chú</label><textarea id="a-note" placeholder="Ghi chú..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-acceptance')">Hủy</button>
+      <button class="btn-save" onclick="saveAcceptance()"><i class="fa-solid fa-check"></i> Lưu nghiệm thu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: DEBT ═══ -->
+<div class="modal-overlay" id="modal-debt">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <h2><i class="fa-solid fa-coins" style="color:var(--blue);margin-right:8px"></i><span id="debt-modal-title">Thêm công nợ</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-debt')">&times;</button>
+    </div>
+    <div class="fg">
+      <div class="form-field fg-full"><label>Số hợp đồng *</label>
+        <select id="d-id" onchange="syncFromContract('d-id','d-type','d-customer','d-val-after','d-payment','d-expiry','d-val-before')" style="font-family:var(--font);width:100%">
+          <option value="">-- Chọn số hợp đồng --</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Loại hợp đồng</label><input type="text" id="d-type" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field fg-full"><label>Khách hàng</label><input type="text" id="d-customer" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Giá trị trước VAT</label><input type="text" id="d-val-before" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Giá trị sau VAT</label><input type="text" id="d-val-after" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field">
+        <label>KH đã thanh toán (VNĐ) &nbsp;
+          <span style="font-size:11px;font-weight:400;color:var(--text2)">
+            hoặc <a href="#" onclick="toggleDebtPctMode(event)" style="color:var(--blue);text-decoration:underline" id="d-pct-toggle">nhập theo %</a>
+          </span>
+        </label>
+        <input type="number" id="d-paid" placeholder="0" oninput="calcDebtRemain()">
+        <div id="d-pct-wrap" style="display:none;margin-top:6px">
+          <input type="number" id="d-paid-pct" placeholder="VD: 30 (= 30%)" min="0" max="100" oninput="calcDebtFromPct()" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font)">
+        </div>
+      </div>
+      <div class="form-field"><label>Giá trị phát sinh (VNĐ)</label><input type="number" id="d-incurred" placeholder="0"></div>
+      <div class="form-field"><label>Còn lại chưa thanh toán</label><input type="text" id="d-remain" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Hạn thanh toán</label><input type="date" id="d-deadline"></div>
+      <div class="form-field"><label>Hóa đơn</label>
+        <select id="d-invoice">
+          <option value="no">Chưa xuất</option>
+          <option value="yes">Đã xuất</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Ngày xuất hóa đơn</label><input type="date" id="d-invoice-date"></div>
+      <div class="form-field fg-full"><label>Ghi chú</label><textarea id="d-note" placeholder="Ghi chú..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-debt')">Hủy</button>
+      <button class="btn-save" onclick="saveDebt()"><i class="fa-solid fa-check"></i> Lưu công nợ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: WARRANTY ═══ -->
+<div class="modal-overlay" id="modal-warranty">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <h2><i class="fa-solid fa-shield-halved" style="color:var(--blue);margin-right:8px"></i><span id="war-modal-title">Thêm bảo hành</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-warranty')">&times;</button>
+    </div>
+    <div class="fg">
+      <div class="form-field fg-full"><label>Số hợp đồng *</label>
+        <select id="w-id" onchange="syncWarrantyFromContract()" style="font-family:var(--font);width:100%">
+          <option value="">-- Chọn số hợp đồng --</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Loại hợp đồng</label><input type="text" id="w-type" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field fg-full"><label>Khách hàng</label><input type="text" id="w-customer" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Thời gian bảo hành</label>
+        <select id="w-duration" onchange="calcWarrantyExpiry()">
+          <option value="0">Không bảo hành</option>
+          <option value="6">6 tháng</option>
+          <option value="12">12 tháng</option>
+          <option value="custom">Tùy chọn...</option>
+        </select>
+      </div>
+      <div class="form-field" id="w-dur-custom-wrap" style="display:none"><label>Số tháng bảo hành</label><input type="number" id="w-dur-custom" placeholder="VD: 24" oninput="calcWarrantyExpiry()"></div>
+      <div class="form-field"><label>Ngày giao hàng (từ Nghiệm thu)</label><input type="text" id="w-delivery" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Ngày hiệu lực BH</label>
+        <input type="date" id="w-start" oninput="calcWarrantyExpiry()">
+        <small style="font-size:11px;color:var(--text2)">Để trống = lấy ngày giao hàng</small>
+      </div>
+      <div class="form-field"><label>Ngày hết hạn BH (tự tính)</label><input type="date" id="w-end" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field">
+        <label>Giá trị phải thu (VNĐ) &nbsp;
+          <span style="font-size:11px;font-weight:400;color:var(--text2)">
+            hoặc <a href="#" onclick="toggleWarPctMode(event)" style="color:var(--blue);text-decoration:underline">nhập theo %</a>
+          </span>
+        </label>
+        <input type="number" id="w-receivable" placeholder="0">
+        <div id="w-pct-wrap" style="display:none;margin-top:6px">
+          <input type="number" id="w-receivable-pct" placeholder="VD: 5 (= 5% GT HĐ)" min="0" max="100" oninput="calcWarReceivable()" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font)">
+        </div>
+      </div>
+      <div class="form-field"><label>Vấn đề bảo hành</label><textarea id="w-issues" placeholder="Mô tả vấn đề phát sinh trong thời gian bảo hành..."></textarea></div>
+      <div class="form-field fg-full"><label>Ghi chú</label><textarea id="w-note" placeholder="Ghi chú..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-warranty')">Hủy</button>
+      <button class="btn-save" onclick="saveWarranty()"><i class="fa-solid fa-check"></i> Lưu bảo hành</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: SUPPLIER CONTRACT ═══ -->
+<div class="modal-overlay" id="modal-supplier">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <h2><i class="fa-solid fa-truck-ramp-box" style="color:var(--blue);margin-right:8px"></i><span id="sup-modal-title">Thêm hợp đồng nhà cung cấp</span></h2>
+      <button class="modal-close" onclick="closeModal('modal-supplier')">&times;</button>
+    </div>
+    <div class="fg">
+      <div class="form-field"><label>Số hợp đồng *</label>
+        <input type="text" id="sup-id" placeholder="VD: NCC-2026-001" list="sup-id-list" autocomplete="off">
+        <datalist id="sup-id-list"></datalist>
+      </div>
+      <div class="form-field"><label>Tên nhà cung cấp *</label>
+        <input type="text" id="sup-name" placeholder="Tên nhà cung cấp" list="sup-name-list" autocomplete="off">
+        <datalist id="sup-name-list"></datalist>
+      </div>
+      <div class="form-field"><label>Loại hợp đồng</label>
+        <select id="sup-type" onchange="toggleSupTypeOther()">
+          <option value="Cung cấp thiết bị">Cung cấp thiết bị</option>
+          <option value="Dịch vụ lắp đặt">Dịch vụ lắp đặt</option>
+          <option value="other">Tùy chọn khác...</option>
+        </select>
+      </div>
+      <div class="form-field" id="sup-type-other-wrap" style="display:none"><label>Loại hợp đồng (nhập)</label><input type="text" id="sup-type-other" placeholder="Nhập loại hợp đồng"></div>
+      <div class="form-field"><label>Giá trị trước VAT (VNĐ)</label><input type="number" id="sup-val-before" placeholder="0" oninput="autoFillSupVAT()"></div>
+      <div class="form-field"><label>Thuế VAT</label>
+        <select id="sup-vat" onchange="autoFillSupVAT()" style="font-family:var(--font)">
+          <option value="">-- Chọn VAT --</option>
+          <option value="5">5%</option>
+          <option value="8">8%</option>
+          <option value="10">10%</option>
+          <option value="custom">Tùy chọn...</option>
+        </select>
+      </div>
+      <div class="form-field fg-full" id="sup-vat-custom-wrap" style="display:none"><label>Thuế VAT tùy chọn (%)</label><input type="number" id="sup-vat-custom" placeholder="VD: 7" min="0" max="100" oninput="autoFillSupVAT()"></div>
+      <div class="form-field"><label>Giá trị sau VAT (VNĐ)</label><input type="number" id="sup-val-after" placeholder="Tự động tính khi chọn VAT"></div>
+      <div class="form-field"><label>Thời gian ký hợp đồng</label><input type="date" id="sup-sign-date"></div>
+      <div class="form-field"><label>Thời gian hiệu lực</label><input type="date" id="sup-effective-date" oninput="calcSupExpected()"></div>
+      <div class="form-field"><label>Thời gian thực hiện</label>
+        <select id="sup-duration" onchange="calcSupExpected()">
+          <option value="">-- Chọn --</option>
+          <option value="7">1 tuần (7 ngày)</option>
+          <option value="56">8 tuần (56 ngày)</option>
+          <option value="70">10 tuần (70 ngày)</option>
+          <option value="84">12 tuần (84 ngày)</option>
+          <option value="custom">Tùy chọn (nhập ngày)</option>
+        </select>
+      </div>
+      <div class="form-field" id="sup-duration-custom-wrap" style="display:none"><label>Số ngày thực hiện</label><input type="number" id="sup-duration-custom" placeholder="VD: 90" oninput="calcSupExpected()"></div>
+      <div class="form-field"><label>Thời gian dự kiến giao (tự tính)</label><input type="date" id="sup-expected-date" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field"><label>Tình trạng</label>
+        <select id="sup-status" onchange="toggleSupStatusOther()">
+          <option value="Chưa đặt hàng">1. Chưa đặt hàng</option>
+          <option value="Đã đặt hàng">2. Đã đặt hàng</option>
+          <option value="Đang sản xuất">3. Đang sản xuất</option>
+          <option value="Đang vận chuyển">4. Đang vận chuyển</option>
+          <option value="Đã về kho">5. Đã về kho</option>
+          <option value="Đang giao khách">6. Đang giao khách</option>
+          <option value="Đã giao hàng">7. Đã giao hàng</option>
+          <option value="Đã nghiệm thu">8. Đã nghiệm thu</option>
+          <option value="Hoàn thành">9. Hoàn thành</option>
+          <option value="other">10. Tùy chọn khác...</option>
+        </select>
+      </div>
+      <div class="form-field" id="sup-status-other-wrap" style="display:none"><label>Tình trạng (nhập)</label><input type="text" id="sup-status-other" placeholder="Nhập tình trạng..."></div>
+      <div class="form-field"><label>Ngày giao hàng thực tế</label><input type="date" id="sup-actual-delivery" oninput="updateSupProgressPreview()"></div>
+      <div class="form-field"><label>Trạng thái tiến độ (tự tính)</label><input type="text" id="sup-progress-preview" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
+      <div class="form-field fg-full"><label>Hợp đồng (đính kèm file)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="file-drop" style="flex:1" onclick="document.getElementById('sup-files-input').click()"><i class="fa-solid fa-paperclip"></i> Nhấn để đính kèm file (Word/PDF/Excel/Scan, tối đa 50MB)</div>
+          <button class="btn-drive" onclick="drivePickerOpen('sup-file-list')" title="Chọn từ Google Drive" type="button"><i class="fa-brands fa-google-drive"></i> Drive</button>
+        </div>
+        <input type="file" id="sup-files-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" style="display:none" onchange="handleFileAttach('sup-files-input','sup-file-list')">
+        <div class="file-list" id="sup-file-list"></div>
+      </div>
+      <div class="form-field fg-full"><label>Ghi chú</label><textarea id="sup-note" placeholder="Ghi chú thêm..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-supplier')">Hủy</button>
+      <button class="btn-save" onclick="saveSupplier()"><i class="fa-solid fa-check"></i> Lưu hợp đồng NCC</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: CONTRACT DETAIL ═══ -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <h2 id="detail-title"></h2>
+      <button class="modal-close" onclick="closeModal('modal-detail')">&times;</button>
+    </div>
+    <div id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-detail')">Đóng</button>
+      <button class="btn-save" id="detail-edit-btn" onclick="editFromDetail()"><i class="fa-solid fa-pen"></i> Chỉnh sửa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════
+const SB_URL = 'https://ltjqxvhkuqqvaurtsgrb.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0anF4dmhrdXFxdmF1cnRzZ3JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTg1MjUsImV4cCI6MjA5NjYzNDUyNX0.k_sVZzCuKjMqkB_KwLOKVeEMmFSwvjpAnrCTMes_eCo';
+const SB_HDR = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+async function sbGet(table,params){
+  // kc_users dùng cột created, các bảng khác dùng created_at
+  const orderCol=table==='kc_users'?'created':'created_at';
+  const sep=(params&&params.length)?'&':'';
+  const r=await fetch(SB_URL+'/rest/v1/'+table+'?'+(params||'')+sep+'order='+orderCol+'.desc',{headers:SB_HDR});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+async function sbUpsert(table,data){
+  const r=await fetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{...SB_HDR,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(data)});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(table,id){
+  const r=await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:SB_HDR});
+  if(!r.ok)throw new Error(await r.text());
+}
+
+// ── IN-MEMORY DATA ──
+let users=[],contracts=[],acceptances=[],debts=[],warranties=[],suppliers=[];
+let currentUser=null,editingId=null;
+
+// Map DB → app
+function mC(r){return{id:r.id,type:r.type,customer:r.customer,vat:r.vat,vatCustom:r.vat_custom,valBefore:r.val_before,valAfter:r.val_after,start:r.start_date,duration:r.duration,expiry:r.expiry,payment:r.payment,note:r.note,files:r.files||[]};}
+function mA(r){return{id:r.id,cid:r.cid,status:r.status,statusOther:r.status_other,stage:r.acceptance_stage||'Giao hàng',delivery:r.delivery,note:r.note,files:r.files||[]};}
+function mD(r){return{id:r.id,cid:r.cid,paid:r.paid,incurred:r.incurred_value||0,paymentDeadline:r.payment_deadline,invoice:r.invoice,invoiceDate:r.invoice_date,note:r.note,files:r.files||[]};}
+function mW(r){return{id:r.id,cid:r.cid,duration:r.duration,delivery:r.delivery,start:r.start_date,end:r.end_date,receivable:r.receivable_amount||0,issues:r.issues||'',note:r.note};}
+function mU(r){return{id:r.id,name:r.name,email:r.email,password:r.password,role:r.role,status:r.status,created:r.created};}
+function mS(r){return{id:r.id,supplierName:r.supplier_name,type:r.type,typeOther:r.type_other,valBefore:r.val_before,valAfter:r.val_after,signDate:r.sign_date,effectiveDate:r.effective_date,duration:r.duration,expectedDate:r.expected_date,status:r.status,statusOther:r.status_other,actualDelivery:r.actual_delivery,note:r.note,files:r.files||[]};}
+
+// Map app → DB
+function dbC(c){return{id:c.id,type:c.type,customer:c.customer,vat:c.vat||null,vat_custom:c.vatCustom||null,val_before:c.valBefore||0,val_after:c.valAfter||0,start_date:c.start||null,duration:c.duration||0,expiry:c.expiry||null,payment:c.payment||null,note:c.note||null,files:c.files||[]};}
+function dbA(a){return{id:a.id,cid:a.cid,status:a.status,status_other:a.statusOther||null,acceptance_stage:a.stage||'Giao hàng',delivery:a.delivery||null,note:a.note||null,files:a.files||[]};}
+function dbD(d){return{id:d.id,cid:d.cid,paid:d.paid||0,incurred_value:d.incurred||0,payment_deadline:d.paymentDeadline||null,invoice:d.invoice||'no',invoice_date:d.invoiceDate||null,note:d.note||null,files:d.files||[]};}
+function dbW(w){return{id:w.id,cid:w.cid,duration:w.duration||0,delivery:w.delivery||null,start_date:w.start||null,end_date:w.end||null,receivable_amount:w.receivable||0,issues:w.issues||null,note:w.note||null};}
+function dbU(u){return{id:u.id,name:u.name,email:u.email,password:u.password,role:u.role,status:u.status,created:u.created};}
+function dbS(s){return{id:s.id,supplier_name:s.supplierName,type:s.type,type_other:s.typeOther||null,val_before:s.valBefore||0,val_after:s.valAfter||0,sign_date:s.signDate||null,effective_date:s.effectiveDate||null,duration:s.duration||0,expected_date:s.expectedDate||null,status:s.status,status_other:s.statusOther||null,actual_delivery:s.actualDelivery||null,note:s.note||null,files:s.files||[]};}
+
+function showLoader(on){
+  let el=document.getElementById('app-loader');
+  if(!el){el=document.createElement('div');el.id='app-loader';el.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>&nbsp; Đang đồng bộ...';el.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.8);z-index:9999;display:flex;align-items:center;justify-content:center;font-size:15px;color:#185FA5;font-weight:600;gap:8px';document.body.appendChild(el);}
+  el.style.display=on?'flex':'none';
+}
+
+async function loadAllData(){
+  showLoader(true);
+  try{
+    const [u,c,a,d,w,s]=await Promise.all([
+      sbGet('kc_users',''),
+      sbGet('kc_contracts',''),
+      sbGet('kc_acceptances',''),
+      sbGet('kc_debts',''),
+      sbGet('kc_warranties',''),
+      sbGet('kc_suppliers','')
+    ]);
+    users=u.map(mU);
+    contracts=c.map(mC);
+    acceptances=a.map(mA);
+    debts=d.map(mD);
+    warranties=w.map(mW);
+    suppliers=s.map(mS);
+  }catch(e){showToast('Lỗi kết nối Supabase: '+e.message,'err');}
+  showLoader(false);
+}
+
+// Stub save functions (không dùng localStorage nữa)
+function saveContracts(){}
+function saveAcceptances(){}
+function saveDebts(){}
+function saveWarranties(){}
+function saveUsers(){}
+
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+function switchAuthTab(t){
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('form-login').classList.toggle('active',t==='login');
+  document.getElementById('form-register').classList.toggle('active',t==='register');
+}
+function showMsg(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='auth-msg show'+(type==='success'?' success':'');setTimeout(()=>el.classList.remove('show'),4000);}
+
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim().toLowerCase();
+  const pass=document.getElementById('l-pass').value;
+  if(!email||!pass){showMsg('login-msg','Vui lòng nhập đầy đủ thông tin.');return;}
+  showLoader(true);
+  try{
+    const res=await sbGet('kc_users','email=eq.'+encodeURIComponent(email)+'&password=eq.'+encodeURIComponent(pass));
+    showLoader(false);
+    if(!res.length){showMsg('login-msg','Email hoặc mật khẩu không đúng.');return;}
+    const u=mU(res[0]);
+    if(u.status==='pending'){showMsg('login-msg','Tài khoản chờ admin duyệt.');return;}
+    if(u.status==='rejected'){showMsg('login-msg','Tài khoản đã bị từ chối.');return;}
+    currentUser=u;
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app').classList.add('visible');
+    await loadAllData();
+    initApp();
+  }catch(e){showLoader(false);showMsg('login-msg','Lỗi kết nối: '+e.message);}
+}
+
+async function doRegister(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim().toLowerCase();
+  const pass=document.getElementById('r-pass').value;
+  if(!name||!email||!pass){showMsg('reg-msg','Vui lòng điền đầy đủ thông tin.');return;}
+  if(pass.length<6){showMsg('reg-msg','Mật khẩu tối thiểu 6 ký tự.');return;}
+  if(users.find(u=>u.email.toLowerCase()===email)){showMsg('reg-msg','Email đã được đăng ký.');return;}
+  const nu={id:'u'+Date.now(),name,email,password:pass,role:'member',status:'pending',created:new Date().toISOString().split('T')[0]};
+  showLoader(true);
+  try{
+    await sbUpsert('kc_users',dbU(nu));
+    showLoader(false);
+    showMsg('reg-msg','Đăng ký thành công! Chờ admin duyệt.','success');
+    setTimeout(()=>switchAuthTab('login'),2000);
+  }catch(e){showLoader(false);showMsg('reg-msg','Lỗi: '+e.message);}
+}
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('l-email').value='';
+  document.getElementById('l-pass').value='';
+}
+
+// ══════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════
+function initApp(){
+  const sb=document.getElementById('sidebar-user');
+  sb.innerHTML=`<div class="su-name">${currentUser.name}</div>
+    <div class="su-role">${currentUser.email}</div>
+    <span class="su-badge ${currentUser.role==='admin'?'admin':''}">${currentUser.role==='admin'?'Admin':'Thành viên'}</span>`;
+  if(currentUser.role==='admin'){
+    document.getElementById('nav-admin-item').style.display='block';
+  }
+  document.getElementById('set-name').value=currentUser.name;
+  document.getElementById('set-email').value=currentUser.email;
+  document.getElementById('set-role').textContent=currentUser.role==='admin'?'Admin':'Thành viên';
+  document.getElementById('set-status').textContent='Đang hoạt động';
+  renderAll();
+  goPage('overview');
+}
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+const PAGE_TITLES={overview:'Tổng quan',contracts:'Hợp đồng',acceptance:'Nghiệm thu',debt:'Công nợ',warranty:'Bảo hành',suppliers:'Hợp đồng Nhà cung cấp',report:'Báo cáo Thu/Chi',admin:'Quản lý tài khoản',settings:'Cài đặt'};
+function goPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const ni=document.getElementById('nav-'+p);if(ni)ni.classList.add('active');
+  document.getElementById('topbar-title').textContent=PAGE_TITLES[p]||p;
+  document.getElementById('topbar-add-btn').style.display=p==='contracts'?'inline-flex':'none';
+  if(p==='overview'){renderOverview();}
+  else if(p==='contracts'){renderContracts();}
+  else if(p==='acceptance'){renderAcceptance();}
+  else if(p==='debt'){renderDebt();}
+  else if(p==='warranty'){renderWarranty();}
+  else if(p==='suppliers'){renderSuppliers();}
+  else if(p==='report'){renderReport();}
+  else if(p==='admin'){renderAdmin();}
+}
+
+function renderAll(){renderOverview();renderContracts();renderAcceptance();renderDebt();renderWarranty();renderSuppliers();updatePendingBadge();}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const today=new Date();today.setHours(0,0,0,0);
+function daysFrom(s){if(!s)return null;const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000);}
+function fmtDate(s){if(!s)return'—';return new Date(s).toLocaleDateString('vi-VN');}
+function fmtNum(v){if(v===undefined||v===null||v==='')return'—';return new Intl.NumberFormat('vi-VN').format(v);}
+function fmtNumC(v){return new Intl.NumberFormat('vi-VN',{notation:'compact',maximumFractionDigits:1}).format(v);}
+function daysBadge(d){
+  if(d===null)return'—';
+  if(d<0)return`<span class="days-danger">Quá ${Math.abs(d)} ngày</span>`;
+  if(d===0)return`<span class="days-danger">Hôm nay</span>`;
+  if(d<=7)return`<span class="days-danger">${d} ngày</span>`;
+  if(d<=30)return`<span class="days-warn">${d} ngày</span>`;
+  return`<span class="days-ok">${d} ngày</span>`;
+}
+function typeBadge(t){const m={CCTB:'b-cctb',Dự_án:'b-duan','Dự án':'b-duan','Dịch vụ':'b-dichvu'};return`<span class="badge ${m[t]||'b-pending'}">${t}</span>`;}
+function stageBadge(s){
+  const m={'Giao hàng':'b-stage-gh','Lắp đặt':'b-stage-ld','Chạy thử':'b-stage-ct','Hoàn thành':'b-stage-ht'};
+  return`<span class="badge ${m[s]||'b-pending'}">${s||'—'}</span>`;
+}
+function accStatusBadge(s,custom){
+  if(s==='done')return'<span class="badge b-paid">Hoàn thành</span>';
+  if(s==='inprogress')return'<span class="badge b-active">Đang triển khai</span>';
+  return`<span class="badge b-pending">${custom||s}</span>`;
+}
+function getContract(cid){return contracts.find(c=>c.id===cid);}
+function getAcceptance(cid){return acceptances.find(a=>a.cid===cid);}
+
+// ══════════════════════════════════════════
+// OVERVIEW
+// ══════════════════════════════════════════
+function renderOverview(){
+  const totalC=contracts.length;
+  const totalA=acceptances.length;
+  const totalD=debts.length;
+  const totalW=warranties.length;
+  const expiringC=contracts.filter(c=>{const d=daysFrom(c.expiry);return d!==null&&d>=0&&d<=30;}).length;
+  const overdueD=debts.filter(d=>{const c=getContract(d.cid);return c&&daysFrom(c.expiry)<0&&(c.valAfter-(d.paid||0))>0;}).length;
+  const totalRemain=debts.reduce((s,d)=>{const c=getContract(d.cid);return s+(c?(c.valAfter-(d.paid||0)):0);},0);
+  const totalPaid=debts.reduce((s,d)=>s+(d.paid||0),0);
+  const totalIncurred=debts.reduce((s,d)=>s+(d.incurred||0),0);
+  const totalReceivable=warranties.reduce((s,w)=>s+(w.receivable||0),0);
+  const warExpiring=warranties.filter(w=>calcWarStatus(w)==='expiring').length;
+
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="sc-label">Tổng hợp đồng</div><div class="sc-value blue">${totalC}</div><div class="sc-sub">Tất cả hợp đồng</div></div>
+    <div class="stat-card"><div class="sc-label">Nghiệm thu</div><div class="sc-value ok">${totalA}</div><div class="sc-sub">Đã tạo</div></div>
+    <div class="stat-card"><div class="sc-label">Công nợ</div><div class="sc-value ${overdueD?'danger':''}">${totalD}</div><div class="sc-sub">${overdueD?overdueD+' quá hạn':'Không có quá hạn'}</div></div>
+    <div class="stat-card"><div class="sc-label">Bảo hành</div><div class="sc-value ${warExpiring?'warn':''}">${totalW}</div><div class="sc-sub">${warExpiring?warExpiring+' sắp hết hạn':'Đang theo dõi'}</div></div>
+    <div class="stat-card"><div class="sc-label">Sắp hết hạn HĐ</div><div class="sc-value ${expiringC?'warn':''}">${expiringC}</div><div class="sc-sub">Trong 30 ngày tới</div></div>
+    <div class="stat-card"><div class="sc-label">Đã thu</div><div class="sc-value ok" style="font-size:18px">${fmtNumC(totalPaid)} ₫</div><div class="sc-sub">Tổng đã thanh toán</div></div>
+    <div class="stat-card"><div class="sc-label">Còn phải thu</div><div class="sc-value warn" style="font-size:18px">${fmtNumC(Math.max(0,totalRemain))} ₫</div><div class="sc-sub">Công nợ chưa thu</div></div>
+    <div class="stat-card"><div class="sc-label">Giá trị phát sinh</div><div class="sc-value ${totalIncurred?'danger':''}" style="font-size:18px">${fmtNumC(totalIncurred)} ₫</div><div class="sc-sub">Phát sinh ngoài HĐ</div></div>
+    <div class="stat-card"><div class="sc-label">GT phải thu BH</div><div class="sc-value" style="font-size:18px;color:var(--purple)">${fmtNumC(totalReceivable)} ₫</div><div class="sc-sub">Giá trị phải thu BH</div></div>
+  `;
+
+  // Alerts
+  let alerts='';
+  const expC=contracts.filter(c=>{const d=daysFrom(c.expiry);return d!==null&&d>=0&&d<=7;});
+  if(expC.length)alerts+=`<div class="alert alert-danger"><i class="fa-solid fa-circle-exclamation"></i><div><b>HĐ sắp hết hạn (7 ngày):</b> ${expC.map(c=>c.id).join(', ')}</div></div>`;
+  const expC30=contracts.filter(c=>{const d=daysFrom(c.expiry);return d!==null&&d>7&&d<=30;});
+  if(expC30.length)alerts+=`<div class="alert alert-warn"><i class="fa-solid fa-triangle-exclamation"></i><div><b>HĐ hết hạn trong 30 ngày:</b> ${expC30.map(c=>c.id).join(', ')}</div></div>`;
+  document.getElementById('alert-area').innerHTML=alerts;
+
+  // Expiring contracts table
+  const expiring=contracts.filter(c=>{const d=daysFrom(c.expiry);return d!==null&&d>=0&&d<=60;}).sort((a,b)=>daysFrom(a.expiry)-daysFrom(b.expiry));
+  document.getElementById('ov-expiring').innerHTML=expiring.length?expiring.map(c=>`<tr><td class="link-cell" onclick="openDetail('${c.id}')">${c.id}</td><td style="font-size:12px;color:var(--text2)">${c.customer}</td><td>${daysBadge(daysFrom(c.expiry))}</td></tr>`).join(''):`<tr><td colspan="3" class="empty">Không có HĐ sắp hết hạn</td></tr>`;
+
+  // Overdue debt table
+  const odebts=debts.filter(d=>{const c=getContract(d.cid);return c&&daysFrom(c.expiry)<0&&(c.valAfter-(d.paid||0))>0;});
+  document.getElementById('ov-overdue-debt').innerHTML=odebts.length?odebts.map(d=>{const c=getContract(d.cid);return`<tr><td class="link-cell" onclick="goPage('debt')">${d.cid}</td><td style="font-size:12px;color:var(--text2)">${c?c.customer:'—'}</td><td style="font-size:12px;color:var(--red);font-weight:600">${fmtNumC(c.valAfter-(d.paid||0))} ₫</td></tr>`;}).join(''):`<tr><td colspan="3" class="empty">Không có công nợ quá hạn</td></tr>`;
+}
+
+// ══════════════════════════════════════════
+// CONTRACTS
+// ══════════════════════════════════════════
+function renderContracts(){
+  const q=(document.getElementById('sc-q').value||'').toLowerCase();
+  const ft=document.getElementById('sc-type').value;
+  const fs=document.getElementById('sc-st').value;
+  let rows=contracts.filter(c=>{
+    const m=!q||(c.id+c.customer).toLowerCase().includes(q);
+    const mt=!ft||c.type===ft;
+    const ms=!fs||calcContractStatus(c)===fs;
+    return m&&mt&&ms;
+  });
+  const tb=document.getElementById('tb-contracts');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="11" class="empty"><i class="fa-solid fa-folder-open" style="font-size:20px;margin-bottom:6px;display:block"></i>Không có hợp đồng nào</td></tr>`;return;}
+  tb.innerHTML=rows.map(c=>{
+    const d=daysFrom(c.expiry);
+    const rc=d!==null&&d>=0&&d<=7?'danger-row':d!==null&&d>=0&&d<=30?'warn-row':'';
+    const st=calcContractStatus(c);
+    const stBadge={active:'<span class="badge b-active">Đang TH</span>',pending:'<span class="badge b-pending">Chờ ký</span>',done:'<span class="badge b-done">Hoàn thành</span>',expired:'<span class="badge b-expired">Hết hạn</span>'}[st]||st;
+    return`<tr class="${rc}">
+      <td><span class="link-cell" onclick="openDetail('${c.id}')">${c.id}</span></td>
+      <td>${typeBadge(c.type)}</td>
+      <td style="font-size:12px;color:var(--text2)">${c.customer}</td>
+      <td style="font-size:12px">${c.valBefore?fmtNum(c.valBefore)+' ₫':'—'}</td>
+      <td style="font-size:12px;font-weight:600">${c.valAfter?fmtNum(c.valAfter)+' ₫':'—'}</td>
+      <td style="font-size:12px">${fmtDate(c.start)}</td>
+      <td style="font-size:12px">${fmtDate(c.expiry)}</td>
+      <td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.payment||''}">${c.payment||'—'}</td>
+      <td>${stBadge}</td>
+      <td>${daysBadge(d)}</td>
+      <td><span style="display:flex;gap:2px">
+        <button class="icon-btn" onclick="openDetail('${c.id}')" title="Chi tiết"><i class="fa-solid fa-eye"></i></button>
+        <button class="icon-btn" onclick="openEditContract('${c.id}')" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="deleteItem('contracts','${c.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+      </span></td>
+    </tr>`;
+  }).join('');
+}
+
+function calcContractStatus(c){
+  const d=daysFrom(c.expiry);
+  if(!c.start) return 'pending';
+  if(d!==null&&d<0) return 'expired';
+  const acc=getAcceptance(c.id);
+  if(acc&&acc.status==='done') return 'done';
+  return 'active';
+}
+
+// ══════════════════════════════════════════
+// ACCEPTANCE
+// ══════════════════════════════════════════
+function renderAcceptance(){
+  const q=(document.getElementById('sa-q').value||'').toLowerCase();
+  const fs=document.getElementById('sa-st').value;
+  let rows=acceptances.filter(a=>{
+    const c=getContract(a.cid);
+    const m=!q||(a.cid+(c?c.customer:'')).toLowerCase().includes(q);
+    const ms=!fs||a.status===fs;
+    return m&&ms;
+  });
+  const tb=document.getElementById('tb-acceptance');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="10" class="empty"><i class="fa-solid fa-folder-open" style="font-size:20px;margin-bottom:6px;display:block"></i>Không có dữ liệu nghiệm thu</td></tr>`;return;}
+  tb.innerHTML=rows.map(a=>{
+    const c=getContract(a.cid)||{};
+    return`<tr>
+      <td><span class="link-cell" onclick="openDetail('${a.cid}')">${a.cid}</span></td>
+      <td>${typeBadge(c.type||'')}</td>
+      <td style="font-size:12px;color:var(--text2)">${c.customer||'—'}</td>
+      <td style="font-size:12px">${c.valAfter?fmtNum(c.valAfter)+' ₫':'—'}</td>
+      <td style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${c.payment||''}">${c.payment||'—'}</td>
+      <td style="font-size:12px">${fmtDate(c.expiry)}</td>
+      <td>${stageBadge(a.stage)}</td>
+      <td>${accStatusBadge(a.status,a.statusOther)}</td>
+      <td style="font-size:12px">${fmtDate(a.delivery)}</td>
+      <td style="font-size:12px;color:var(--text2)" title="${a.note||''}">${a.note||'—'}</td>
+      <td><span style="display:flex;gap:2px">
+        <button class="icon-btn" onclick="openEditAcc('${a.id}')" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="deleteItem('acceptances','${a.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+      </span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// DEBT
+// ══════════════════════════════════════════
+function renderDebt(){
+  const q=(document.getElementById('sd-q').value||'').toLowerCase();
+  const fi=document.getElementById('sd-inv').value;
+  let rows=debts.filter(d=>{
+    const c=getContract(d.cid);
+    const m=!q||(d.cid+(c?c.customer:'')).toLowerCase().includes(q);
+    const mi=!fi||d.invoice===fi;
+    return m&&mi;
+  });
+  const tb=document.getElementById('tb-debt');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="11" class="empty"><i class="fa-solid fa-folder-open" style="font-size:20px;margin-bottom:6px;display:block"></i>Không có dữ liệu công nợ</td></tr>`;return;}
+  tb.innerHTML=rows.map(d=>{
+    const c=getContract(d.cid)||{};
+    const remain=Math.max(0,(c.valAfter||0)-(d.paid||0));
+    const invBadge=d.invoice==='yes'?'<span class="badge b-invoice-yes">Đã xuất</span>':'<span class="badge b-invoice-no">Chưa xuất</span>';
+    const dlDays=daysFrom(d.paymentDeadline);
+    const dlBadge=d.paymentDeadline?(dlDays<0?`<span class="deadline-danger">Quá ${Math.abs(dlDays)}n</span>`:dlDays<=7?`<span class="deadline-warn">${dlDays}n</span>`:`<span style="font-size:12px">${fmtDate(d.paymentDeadline)}</span>`):'—';
+    return`<tr>
+      <td><span class="link-cell" onclick="openDetail('${d.cid}')">${d.cid}</span></td>
+      <td>${typeBadge(c.type||'')}</td>
+      <td style="font-size:12px;color:var(--text2)">${c.customer||'—'}</td>
+      <td style="font-size:12px">${c.valBefore?fmtNum(c.valBefore)+' ₫':'—'}</td>
+      <td style="font-size:12px;font-weight:600">${c.valAfter?fmtNum(c.valAfter)+' ₫':'—'}</td>
+      <td style="font-size:12px;color:var(--green);font-weight:600">${fmtNum(d.paid||0)} ₫</td>
+      <td style="font-size:12px;color:var(--purple)">${d.incurred?fmtNum(d.incurred)+' ₫':'—'}</td>
+      <td style="font-size:12px;color:${remain>0?'var(--red)':'var(--green)'};font-weight:600">${fmtNum(remain)} ₫</td>
+      <td>${dlBadge}</td>
+      <td>${invBadge}</td>
+      <td style="font-size:12px">${fmtDate(d.invoiceDate)}</td>
+      <td style="font-size:12px;color:var(--text2)" title="${d.note||''}">${d.note||'—'}</td>
+      <td><span style="display:flex;gap:2px">
+        <button class="icon-btn" onclick="openEditDebt('${d.id}')" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="deleteItem('debts','${d.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+      </span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// WARRANTY
+// ══════════════════════════════════════════
+function renderWarranty(){
+  const q=(document.getElementById('sw-q').value||'').toLowerCase();
+  const fs=document.getElementById('sw-st').value;
+  let rows=warranties.filter(w=>{
+    const c=getContract(w.cid);
+    const m=!q||(w.cid+(c?c.customer:'')).toLowerCase().includes(q);
+    const st=calcWarStatus(w);
+    const ms=!fs||st===fs;
+    return m&&ms;
+  });
+  const tb=document.getElementById('tb-warranty');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="10" class="empty"><i class="fa-solid fa-folder-open" style="font-size:20px;margin-bottom:6px;display:block"></i>Không có dữ liệu bảo hành</td></tr>`;return;}
+  const stBadgeMap={active:'<span class="badge b-active">Còn hiệu lực</span>',expiring:'<span class="badge b-warn">Sắp hết hạn</span>',expired:'<span class="badge b-expired">Hết hạn</span>',none:'<span class="badge b-invoice-no">Không BH</span>'};
+  tb.innerHTML=rows.map(w=>{
+    const c=getContract(w.cid)||{};
+    const st=calcWarStatus(w);
+    const rc=st==='expiring'?'warn-row':st==='expired'?'danger-row':'';
+    const durLabel=w.duration==0?'Không BH':(w.duration+' tháng');
+    return`<tr class="${rc}">
+      <td><span class="link-cell" onclick="openDetail('${w.cid}')">${w.cid}</span></td>
+      <td>${typeBadge(c.type||'')}</td>
+      <td style="font-size:12px;color:var(--text2)">${c.customer||'—'}</td>
+      <td><span class="badge b-purple">${durLabel}</span></td>
+      <td style="font-size:12px">${fmtDate(w.delivery)}</td>
+      <td style="font-size:12px">${fmtDate(w.start)}</td>
+      <td style="font-size:12px">${fmtDate(w.end)}</td>
+      <td style="font-size:12px;color:var(--purple);font-weight:600">${w.receivable?fmtNum(w.receivable)+' ₫':'—'}</td>
+      <td>${stBadgeMap[st]||st}</td>
+      <td style="font-size:12px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.issues||''}">${w.issues||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${w.note||'—'}</td>
+      <td><span style="display:flex;gap:2px">
+        <button class="icon-btn" onclick="openEditWarranty('${w.id}')" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="deleteItem('warranties','${w.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+      </span></td>
+    </tr>`;
+  }).join('');
+}
+
+function calcWarStatus(w){
+  if(!w.duration||w.duration==0)return 'none';
+  if(!w.end)return 'active';
+  const d=daysFrom(w.end);
+  if(d<0)return 'expired';
+  if(d<=30)return 'expiring';
+  return 'active';
+}
+
+// ══════════════════════════════════════════
+// DETAIL MODAL
+// ══════════════════════════════════════════
+let detailCid='';
+function openDetail(cid){
+  detailCid=cid;
+  const c=getContract(cid);
+  if(!c)return;
+  const acc=getAcceptance(cid);
+  const debt=debts.find(d=>d.cid===cid);
+  const war=warranties.find(w=>w.cid===cid);
+  const remain=Math.max(0,(c.valAfter||0)-((debt&&debt.paid)||0));
+
+  document.getElementById('detail-title').innerHTML=`${typeBadge(c.type)} &nbsp;${c.id}`;
+  let html=`<div class="detail-grid">
+    <div class="di"><label>Khách hàng</label><span>${c.customer}</span></div>
+    <div class="di"><label>Loại</label><span>${c.type}</span></div>
+    <div class="di"><label>Giá trị trước VAT</label><span>${c.valBefore?fmtNum(c.valBefore)+' ₫':'—'}</span></div>
+    <div class="di"><label>Giá trị sau VAT</label><span>${c.valAfter?fmtNum(c.valAfter)+' ₫':'—'}</span></div>
+    <div class="di"><label>Ngày hiệu lực</label><span>${fmtDate(c.start)}</span></div>
+    <div class="di"><label>Ngày hết hạn</label><span>${fmtDate(c.expiry)} ${daysBadge(daysFrom(c.expiry))}</span></div>
+    <div class="di"><label>Điều kiện thanh toán</label><span>${c.payment||'—'}</span></div>
+    <div class="di"><label>Tệp đính kèm</label><span>${c.files&&c.files.length?c.files.map(f=>`<a href="${f.url||f.data||'#'}" download="${f.name}" target="_blank" style="display:flex;align-items:center;gap:4px;color:var(--blue);text-decoration:none;font-size:12px;margin-bottom:2px"><i class="fa-solid fa-download"></i>${f.name}</a>`).join(''):'Chưa có'}</span></div>
+  </div>`;
+  if(c.note)html+=`<div class="section-label">Ghi chú</div><p style="font-size:13px;color:var(--text2)">${c.note}</p>`;
+
+  if(acc){
+    html+=`<div class="section-label">Nghiệm thu</div>
+    <div class="detail-grid">
+      <div class="di"><label>Tình trạng</label><span>${accStatusBadge(acc.status,acc.statusOther)}</span></div>
+      <div class="di"><label>Ngày giao hàng</label><span>${fmtDate(acc.delivery)}</span></div>
+    </div>`;
+    if(acc.note)html+=`<p style="font-size:12px;color:var(--text2)">${acc.note}</p>`;
+  }
+
+  if(debt){
+    const pct=c.valAfter?Math.round((debt.paid||0)/c.valAfter*100):0;
+    html+=`<div class="section-label">Công nợ</div>
+    <div class="detail-grid">
+      <div class="di"><label>Đã thanh toán</label><span style="color:var(--green)">${fmtNum(debt.paid||0)} ₫</span></div>
+      <div class="di"><label>Còn lại</label><span style="color:${remain>0?'var(--red)':'var(--green)'}">${fmtNum(remain)} ₫</span></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(pct,100)}%"></div></div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Đã thu: ${pct}% · Hóa đơn: ${debt.invoice==='yes'?'Đã xuất':'Chưa xuất'}</p>`;
+  }
+
+  if(war&&war.duration>0){
+    html+=`<div class="section-label">Bảo hành</div>
+    <div class="detail-grid">
+      <div class="di"><label>Thời gian BH</label><span>${war.duration} tháng</span></div>
+      <div class="di"><label>Trạng thái</label><span>${{active:'Còn hiệu lực',expiring:'Sắp hết hạn',expired:'Hết hạn',none:'Không BH'}[calcWarStatus(war)]||'—'}</span></div>
+      <div class="di"><label>Hiệu lực BH</label><span>${fmtDate(war.start)}</span></div>
+      <div class="di"><label>Hết hạn BH</label><span>${fmtDate(war.end)} ${daysBadge(daysFrom(war.end))}</span></div>
+    </div>`;
+  }
+
+  document.getElementById('detail-body').innerHTML=html;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function editFromDetail(){
+  closeModal('modal-detail');
+  openEditContract(detailCid);
+}
+
+// ══════════════════════════════════════════
+// CONTRACT MODAL (ADD/EDIT)
+// ══════════════════════════════════════════
+function openAddModal(){
+  editingId=null;
+  document.getElementById('contract-modal-title').innerHTML='<i class="fa-solid fa-file-plus" style="color:var(--blue);margin-right:8px"></i>Thêm hợp đồng mới';
+  clearForm(['f-id','f-customer','f-val-before','f-val-after','f-start','f-expiry','f-note']);
+  document.getElementById('f-type').value='CCTB';
+  document.getElementById('f-duration').value='';
+  document.getElementById('f-payment').value='100% trước giao hàng';
+  document.getElementById('f-vat').value='';
+  document.getElementById('f-vat-custom').value='';
+  document.getElementById('f-vat-custom-wrap').style.display='none';
+  document.getElementById('f-duration-custom-wrap').style.display='none';
+  document.getElementById('f-payment-other-wrap').style.display='none';
+  attachedFiles['f-file-list']=[];
+  document.getElementById('f-file-list').innerHTML='';
+  updateCustomerDatalist();
+  document.getElementById('modal-contract').classList.add('open');
+}
+
+function openEditContract(id){
+  const c=getContract(id);if(!c)return;
+  editingId=id;
+  document.getElementById('contract-modal-title').innerHTML='<i class="fa-solid fa-pen" style="color:var(--blue);margin-right:8px"></i>Chỉnh sửa hợp đồng';
+  document.getElementById('f-id').value=c.id;
+  document.getElementById('f-id').disabled=true;
+  document.getElementById('f-type').value=c.type;
+  document.getElementById('f-customer').value=c.customer;
+  document.getElementById('f-val-before').value=c.valBefore||'';
+  document.getElementById('f-val-after').value=c.valAfter||'';
+  document.getElementById('f-vat').value=c.vat||'';
+  document.getElementById('f-vat-custom').value=c.vatCustom||'';
+  document.getElementById('f-vat-custom-wrap').style.display=c.vat==='custom'?'block':'none';
+  document.getElementById('f-start').value=c.start||'';
+  document.getElementById('f-expiry').value=c.expiry||'';
+  document.getElementById('f-note').value=c.note||'';
+  const stdPay=['100% trước giao hàng','Tạm ứng 30% - TT 70% trước giao hàng','Tạm ứng 30% - TT 70% sau giao hàng'];
+  if(stdPay.includes(c.payment)){
+    document.getElementById('f-payment').value=c.payment;
+    document.getElementById('f-payment-other-wrap').style.display='none';
+  } else {
+    document.getElementById('f-payment').value='other';
+    document.getElementById('f-payment-other-wrap').style.display='block';
+    document.getElementById('f-payment-other').value=c.payment||'';
+  }
+  document.getElementById('f-duration-custom-wrap').style.display='none';
+  renderFileList(c.files||[],'f-file-list',id,'contracts');
+  updateCustomerDatalist();
+  document.getElementById('modal-contract').classList.add('open');
+}
+
+async function saveContract(){
+  const id=editingId||document.getElementById('f-id').value.trim();
+  if(!id){alert('Vui lòng nhập số hợp đồng!');return;}
+  const customer=document.getElementById('f-customer').value.trim();
+  if(!customer){alert('Vui lòng nhập khách hàng!');return;}
+  const payEl=document.getElementById('f-payment');
+  const payment=payEl.value==='other'?document.getElementById('f-payment-other').value.trim():payEl.value;
+  const c={
+    id,
+    type:document.getElementById('f-type').value,
+    customer,
+    vat:document.getElementById('f-vat').value,
+    vatCustom:document.getElementById('f-vat-custom').value,
+    valBefore:parseInt(document.getElementById('f-val-before').value)||0,
+    valAfter:parseInt(document.getElementById('f-val-after').value)||0,
+    start:document.getElementById('f-start').value,
+    duration:parseInt(document.getElementById('f-duration').value)||0,
+    expiry:document.getElementById('f-expiry').value,
+    payment,
+    note:document.getElementById('f-note').value,
+    files:getAttachedFiles('f-file-list')
+  };
+  if(!editingId && contracts.find(x=>x.id===id)){alert('Số hợp đồng đã tồn tại!');return;}
+  showLoader(true);
+  try{
+    await sbUpsert('kc_contracts', dbC(c));
+    await loadAllData();
+    document.getElementById('f-id').disabled=false;
+    closeModal('modal-contract');
+    renderAll();
+    updateContractDatalists();
+    showToast('Đã lưu hợp đồng ✓','ok');
+  }catch(e){showToast('Lỗi lưu: '+e.message,'err');showLoader(false);}
+}
+
+function autoFillAfterVAT(){
+  const vatSel=document.getElementById('f-vat').value;
+  const customWrap=document.getElementById('f-vat-custom-wrap');
+  customWrap.style.display=vatSel==='custom'?'block':'none';
+  const v=parseFloat(document.getElementById('f-val-before').value)||0;
+  if(!v) return;
+  let rate=null;
+  if(vatSel==='custom'){
+    const cv=parseFloat(document.getElementById('f-vat-custom').value);
+    if(!isNaN(cv)) rate=cv/100;
+  } else if(vatSel){
+    rate=parseFloat(vatSel)/100;
+  }
+  if(rate!==null){
+    document.getElementById('f-val-after').value=Math.round(v*(1+rate));
+  }
+}
+
+function calcExpiry(){
+  const start=document.getElementById('f-start').value;
+  const dur=document.getElementById('f-duration').value;
+  document.getElementById('f-duration-custom-wrap').style.display=dur==='custom'?'block':'none';
+  if(!start)return;
+  let days=0;
+  if(dur==='custom'){days=parseInt(document.getElementById('f-duration-custom').value)||0;}
+  else{days=parseInt(dur)||0;}
+  if(days>0){
+    const d=new Date(start);d.setDate(d.getDate()+days);
+    document.getElementById('f-expiry').value=d.toISOString().split('T')[0];
+  }
+}
+
+
+function toggleDebtPctMode(e){
+  e.preventDefault();
+  const wrap=document.getElementById('d-pct-wrap');
+  const tog=document.getElementById('d-pct-toggle');
+  if(wrap.style.display==='none'){wrap.style.display='block';tog.textContent='nhập số tiền';document.getElementById('d-paid').style.display='none';}
+  else{wrap.style.display='none';tog.textContent='nhập theo %';document.getElementById('d-paid').style.display='block';}
+}
+function calcDebtFromPct(){
+  const cid=document.getElementById('d-id').value;
+  const c=contracts.find(x=>x.id===cid);
+  const pct=parseFloat(document.getElementById('d-paid-pct').value)||0;
+  if(c&&pct){
+    const val=Math.round((c.valAfter||0)*pct/100);
+    document.getElementById('d-paid').value=val;
+    calcDebtRemain();
+  }
+}
+function toggleWarPctMode(e){
+  e.preventDefault();
+  const wrap=document.getElementById('w-pct-wrap');
+  wrap.style.display=wrap.style.display==='none'?'block':'none';
+}
+function calcWarReceivable(){
+  const cid=document.getElementById('w-id').value;
+  const c=contracts.find(x=>x.id===cid);
+  const pct=parseFloat(document.getElementById('w-receivable-pct').value)||0;
+  if(c&&pct){
+    document.getElementById('w-receivable').value=Math.round((c.valAfter||0)*pct/100);
+  }
+}
+function togglePaymentOther(){
+  const v=document.getElementById('f-payment').value;
+  document.getElementById('f-payment-other-wrap').style.display=v==='other'?'block':'none';
+}
+
+// ══════════════════════════════════════════
+// SUPPLIERS (HỢP ĐỒNG NHÀ CUNG CẤP)
+// ══════════════════════════════════════════
+function renderSuppliers(){
+  const q=(document.getElementById('ss-q').value||'').toLowerCase();
+  const ft=document.getElementById('ss-type').value;
+  const fst=document.getElementById('ss-status').value;
+  let rows=suppliers.filter(s=>{
+    const m=!q||(s.id+s.supplierName).toLowerCase().includes(q);
+    const mt=!ft||(ft==='other'?!['Cung cấp thiết bị','Dịch vụ lắp đặt'].includes(s.type):s.type===ft);
+    const mst=!fst||(fst==='other'?!STANDARD_SUP_STATUS.includes(s.status):s.status===fst);
+    return m&&mt&&mst;
+  });
+  if(sortState.col){
+    const col=sortState.col==='supplierName'?'supplierName':sortState.col;
+    rows=applySort(rows,col,sortState.dir);
+  }
+  const tb=document.getElementById('tb-suppliers');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="11" class="empty"><i class="fa-solid fa-folder-open" style="font-size:20px;margin-bottom:6px;display:block"></i>Không có hợp đồng nhà cung cấp nào</td></tr>`;return;}
+  tb.innerHTML=rows.map(s=>{
+    const typeLabel=s.type==='other'?(s.typeOther||'Khác'):s.type;
+    const typeBadgeClass=s.type==='Cung cấp thiết bị'?'b-cctb':s.type==='Dịch vụ lắp đặt'?'b-dichvu':'b-pending';
+    const statusLabel=s.status==='other'?(s.statusOther||'Khác'):s.status;
+    const progress=calcSupProgress(s);
+    return`<tr>
+      <td><span class="link-cell" onclick="openEditSupplier('${s.id}')">${s.id}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${s.supplierName}</td>
+      <td><span class="badge ${typeBadgeClass}">${typeLabel}</span></td>
+      <td style="font-size:12px">${s.valBefore?fmtNum(s.valBefore)+' ₫':'—'}</td>
+      <td style="font-size:12px;font-weight:600">${s.valAfter?fmtNum(s.valAfter)+' ₫':'—'}</td>
+      <td style="font-size:12px">${fmtDate(s.signDate)}</td>
+      <td style="font-size:12px">${fmtDate(s.effectiveDate)}</td>
+      <td style="font-size:12px">${fmtDate(s.expectedDate)}</td>
+      <td><span class="badge b-status-sup">${statusLabel}</span></td>
+      <td>${progress.html}</td>
+      <td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.note||''}">${s.note||'—'}</td>
+      <td><span style="display:flex;gap:2px">
+        <button class="icon-btn" onclick="openEditSupplier('${s.id}')" title="Sửa"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="deleteItem('suppliers','${s.id}')" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+      </span></td>
+    </tr>`;
+  }).join('');
+}
+
+const STANDARD_SUP_STATUS=['Chưa đặt hàng','Đã đặt hàng','Đang sản xuất','Đang vận chuyển','Đã về kho','Đang giao khách','Đã giao hàng','Đã nghiệm thu','Hoàn thành'];
+
+// Tính trạng thái tiến độ: so sánh ngày giao thực tế (hoặc hôm nay nếu chưa giao) với ngày dự kiến
+function calcSupProgress(s){
+  if(!s.expectedDate)return{html:'<span class="badge b-progress-pending">Chưa có dự kiến</span>',days:null};
+  const expected=new Date(s.expectedDate);expected.setHours(0,0,0,0);
+  const isDelivered=['Đã giao hàng','Đã nghiệm thu','Hoàn thành'].includes(s.status)||s.actualDelivery;
+  if(isDelivered){
+    const actual=s.actualDelivery?new Date(s.actualDelivery):today;
+    actual.setHours(0,0,0,0);
+    const diff=Math.round((actual-expected)/86400000);
+    if(diff>0)return{html:`<span class="badge b-progress-late">Trễ ${diff} ngày</span>`,days:diff};
+    if(diff<0)return{html:`<span class="badge b-progress-ontime">Sớm ${Math.abs(diff)} ngày</span>`,days:diff};
+    return{html:'<span class="badge b-progress-ontime">Đúng tiến độ</span>',days:0};
+  } else {
+    // Chưa giao - so với hôm nay
+    const diff=Math.round((today-expected)/86400000);
+    if(diff>0)return{html:`<span class="badge b-progress-late">Trễ ${diff} ngày</span>`,days:diff};
+    return{html:`<span class="badge b-progress-ontime">Còn ${Math.abs(diff)} ngày</span>`,days:diff};
+  }
+}
+
+function openSupplierModal(){
+  editingId=null;
+  document.getElementById('sup-modal-title').textContent='Thêm hợp đồng nhà cung cấp';
+  clearForm(['sup-id','sup-name','sup-val-before','sup-val-after','sup-sign-date','sup-effective-date','sup-expected-date','sup-actual-delivery','sup-note']);
+  document.getElementById('sup-type').value='Cung cấp thiết bị';
+  document.getElementById('sup-type-other-wrap').style.display='none';
+  document.getElementById('sup-vat').value='';
+  document.getElementById('sup-vat-custom').value='';
+  document.getElementById('sup-vat-custom-wrap').style.display='none';
+  document.getElementById('sup-duration').value='';
+  document.getElementById('sup-duration-custom-wrap').style.display='none';
+  document.getElementById('sup-status').value='Chưa đặt hàng';
+  document.getElementById('sup-status-other-wrap').style.display='none';
+  document.getElementById('sup-progress-preview').value='';
+  attachedFiles['sup-file-list']=[];
+  document.getElementById('sup-file-list').innerHTML='';
+  updateSupplierDatalists();
+  document.getElementById('modal-supplier').classList.add('open');
+}
+
+function openEditSupplier(id){
+  const s=suppliers.find(x=>x.id===id);if(!s)return;
+  editingId=id;
+  document.getElementById('sup-modal-title').textContent='Chỉnh sửa hợp đồng nhà cung cấp';
+  document.getElementById('sup-id').value=s.id;
+  document.getElementById('sup-id').disabled=true;
+  document.getElementById('sup-name').value=s.supplierName||'';
+  const stdTypes=['Cung cấp thiết bị','Dịch vụ lắp đặt'];
+  if(stdTypes.includes(s.type)){
+    document.getElementById('sup-type').value=s.type;
+    document.getElementById('sup-type-other-wrap').style.display='none';
+  } else {
+    document.getElementById('sup-type').value='other';
+    document.getElementById('sup-type-other-wrap').style.display='block';
+    document.getElementById('sup-type-other').value=s.typeOther||s.type||'';
+  }
+  document.getElementById('sup-val-before').value=s.valBefore||'';
+  document.getElementById('sup-val-after').value=s.valAfter||'';
+  document.getElementById('sup-vat').value=s.vat||'';
+  document.getElementById('sup-vat-custom').value=s.vatCustom||'';
+  document.getElementById('sup-vat-custom-wrap').style.display=s.vat==='custom'?'block':'none';
+  document.getElementById('sup-sign-date').value=s.signDate||'';
+  document.getElementById('sup-effective-date').value=s.effectiveDate||'';
+  document.getElementById('sup-duration').value=['7','56','70','84'].includes(String(s.duration))?String(s.duration):(s.duration?'custom':'');
+  if(document.getElementById('sup-duration').value==='custom'){
+    document.getElementById('sup-duration-custom-wrap').style.display='block';
+    document.getElementById('sup-duration-custom').value=s.duration;
+  } else {
+    document.getElementById('sup-duration-custom-wrap').style.display='none';
+  }
+  document.getElementById('sup-expected-date').value=s.expectedDate||'';
+  if(STANDARD_SUP_STATUS.includes(s.status)){
+    document.getElementById('sup-status').value=s.status;
+    document.getElementById('sup-status-other-wrap').style.display='none';
+  } else {
+    document.getElementById('sup-status').value='other';
+    document.getElementById('sup-status-other-wrap').style.display='block';
+    document.getElementById('sup-status-other').value=s.statusOther||s.status||'';
+  }
+  document.getElementById('sup-actual-delivery').value=s.actualDelivery||'';
+  document.getElementById('sup-note').value=s.note||'';
+  renderFileList(s.files||[],'sup-file-list');
+  updateSupProgressPreview();
+  updateSupplierDatalists();
+  document.getElementById('modal-supplier').classList.add('open');
+}
+
+async function saveSupplier(){
+  const id=editingId||document.getElementById('sup-id').value.trim();
+  if(!id){alert('Vui lòng nhập số hợp đồng!');return;}
+  const supplierName=document.getElementById('sup-name').value.trim();
+  if(!supplierName){alert('Vui lòng nhập tên nhà cung cấp!');return;}
+  if(!editingId&&suppliers.find(x=>x.id===id)){alert('Số hợp đồng đã tồn tại!');return;}
+  const typeEl=document.getElementById('sup-type');
+  const type=typeEl.value==='other'?'other':typeEl.value;
+  const statusEl=document.getElementById('sup-status');
+  const status=statusEl.value==='other'?'other':statusEl.value;
+  const s={
+    id,
+    supplierName,
+    type,
+    typeOther:type==='other'?document.getElementById('sup-type-other').value.trim():'',
+    vat:document.getElementById('sup-vat').value,
+    vatCustom:document.getElementById('sup-vat-custom').value,
+    valBefore:parseInt(document.getElementById('sup-val-before').value)||0,
+    valAfter:parseInt(document.getElementById('sup-val-after').value)||0,
+    signDate:document.getElementById('sup-sign-date').value||null,
+    effectiveDate:document.getElementById('sup-effective-date').value||null,
+    duration:document.getElementById('sup-duration').value==='custom'?(parseInt(document.getElementById('sup-duration-custom').value)||0):(parseInt(document.getElementById('sup-duration').value)||0),
+    expectedDate:document.getElementById('sup-expected-date').value||null,
+    status,
+    statusOther:status==='other'?document.getElementById('sup-status-other').value.trim():'',
+    actualDelivery:document.getElementById('sup-actual-delivery').value||null,
+    note:document.getElementById('sup-note').value,
+    files:getAttachedFiles('sup-file-list')
+  };
+  showLoader(true);
+  try{
+    await sbUpsert('kc_suppliers', dbS(s));
+    await loadAllData();
+    document.getElementById('sup-id').disabled=false;
+    closeModal('modal-supplier');
+    renderAll();
+    showToast('Đã lưu hợp đồng NCC ✓','ok');
+  }catch(e){showToast('Lỗi lưu: '+e.message,'err');showLoader(false);}
+}
+
+function toggleSupTypeOther(){
+  document.getElementById('sup-type-other-wrap').style.display=document.getElementById('sup-type').value==='other'?'block':'none';
+}
+function toggleSupStatusOther(){
+  document.getElementById('sup-status-other-wrap').style.display=document.getElementById('sup-status').value==='other'?'block':'none';
+}
+
+function autoFillSupVAT(){
+  const vatSel=document.getElementById('sup-vat').value;
+  document.getElementById('sup-vat-custom-wrap').style.display=vatSel==='custom'?'block':'none';
+  const v=parseFloat(document.getElementById('sup-val-before').value)||0;
+  if(!v)return;
+  let rate=null;
+  if(vatSel==='custom'){
+    const cv=parseFloat(document.getElementById('sup-vat-custom').value);
+    if(!isNaN(cv))rate=cv/100;
+  } else if(vatSel){
+    rate=parseFloat(vatSel)/100;
+  }
+  if(rate!==null){
+    document.getElementById('sup-val-after').value=Math.round(v*(1+rate));
+  }
+}
+
+function calcSupExpected(){
+  const eff=document.getElementById('sup-effective-date').value;
+  const dur=document.getElementById('sup-duration').value;
+  document.getElementById('sup-duration-custom-wrap').style.display=dur==='custom'?'block':'none';
+  if(!eff)return;
+  let days=0;
+  if(dur==='custom'){days=parseInt(document.getElementById('sup-duration-custom').value)||0;}
+  else{days=parseInt(dur)||0;}
+  if(days>0){
+    const d=new Date(eff);d.setDate(d.getDate()+days);
+    document.getElementById('sup-expected-date').value=d.toISOString().split('T')[0];
+    updateSupProgressPreview();
+  }
+}
+
+function updateSupProgressPreview(){
+  const expectedDate=document.getElementById('sup-expected-date').value;
+  const actualDelivery=document.getElementById('sup-actual-delivery').value;
+  const status=document.getElementById('sup-status').value;
+  const tmp={expectedDate,actualDelivery,status};
+  const progress=calcSupProgress(tmp);
+  // strip HTML tags for input value
+  const text=progress.html.replace(/<[^>]*>/g,'');
+  document.getElementById('sup-progress-preview').value=text;
+}
+
+// Lịch sử số HĐ + tên nhà cung cấp cho datalist (autocomplete)
+function updateSupplierDatalists(){
+  const idDl=document.getElementById('sup-id-list');
+  const nameDl=document.getElementById('sup-name-list');
+  if(idDl)idDl.innerHTML=suppliers.map(s=>`<option value="${s.id}">`).join('');
+  if(nameDl){
+    const names=[...new Set(suppliers.map(s=>s.supplierName).filter(Boolean))];
+    nameDl.innerHTML=names.map(n=>`<option value="${n}">`).join('');
+  }
+}
+
+function exportSuppliers(){
+  const data=suppliers.map(s=>({
+    ...s,
+    typeLabel:s.type==='other'?s.typeOther:s.type,
+    statusLabel:s.status==='other'?s.statusOther:s.status,
+    progress:calcSupProgress(s).html.replace(/<[^>]*>/g,'')
+  }));
+  exportToExcel(data,{
+    id:'Số HĐ',supplierName:'Nhà cung cấp',typeLabel:'Loại',
+    valBefore:'GT trước VAT',valAfter:'GT sau VAT',
+    signDate:'Ngày ký',effectiveDate:'Hiệu lực',duration:'Thời gian TH (ngày)',
+    expectedDate:'Dự kiến giao',statusLabel:'Tình trạng',
+    actualDelivery:'Ngày giao thực tế',progress:'Trạng thái tiến độ',note:'Ghi chú'
+  },'hop-dong-nha-cung-cap');
+}
+
+// ══════════════════════════════════════════
+// BÁO CÁO THU/CHI
+// ══════════════════════════════════════════
+function initReportFilters(){
+  const yearInput=document.getElementById('rp-year');
+  const monthSel=document.getElementById('rp-month');
+  if(!yearInput||monthSel.options.length)return; // already initialized
+  const curYear=new Date().getFullYear();
+  yearInput.value=Math.max(curYear,2026);
+  for(let m=1;m<=12;m++){
+    monthSel.innerHTML+=`<option value="${m}" ${m===(new Date().getMonth()+1)?'selected':''}>Tháng ${m}</option>`;
+  }
+  document.getElementById('rp-quarter').value=Math.ceil((new Date().getMonth()+1)/3);
+}
+
+function onReportPeriodTypeChange(){
+  const type=document.getElementById('rp-period-type').value;
+  document.getElementById('rp-month').style.display=type==='month'?'inline-block':'none';
+  document.getElementById('rp-quarter').style.display=type==='quarter'?'inline-block':'none';
+  renderReport();
+}
+
+// Trả về [startDate, endDate] (Date objects, inclusive) theo kỳ đã chọn
+function getReportRange(){
+  const type=document.getElementById('rp-period-type').value;
+  let year=parseInt(document.getElementById('rp-year').value)||2026;
+  if(year<2026){year=2026;document.getElementById('rp-year').value=2026;}
+  if(type==='year'){
+    return[new Date(year,0,1),new Date(year,11,31)];
+  } else if(type==='quarter'){
+    const q=parseInt(document.getElementById('rp-quarter').value);
+    const startMonth=(q-1)*3;
+    return[new Date(year,startMonth,1),new Date(year,startMonth+3,0)];
+  } else {
+    const m=parseInt(document.getElementById('rp-month').value)-1;
+    return[new Date(year,m,1),new Date(year,m+1,0)];
+  }
+}
+
+function inRange(dateStr,start,end){
+  if(!dateStr)return false;
+  const d=new Date(dateStr);
+  return d>=start&&d<=end;
+}
+
+function reportPeriodLabel(){
+  const type=document.getElementById('rp-period-type').value;
+  const year=document.getElementById('rp-year').value;
+  if(type==='year')return`Năm ${year}`;
+  if(type==='quarter')return`Quý ${document.getElementById('rp-quarter').value} năm ${year}`;
+  return`Tháng ${document.getElementById('rp-month').value}/${year}`;
+}
+
+function renderReport(){
+  initReportFilters();
+  const[start,end]=getReportRange();
+
+  // Doanh thu: Hợp đồng khách hàng, lọc theo Ngày hiệu lực (start)
+  const revRows=contracts.filter(c=>inRange(c.start,start,end));
+  // Chi phí: Hợp đồng nhà cung cấp, lọc theo Ngày ký
+  const expRows=suppliers.filter(s=>inRange(s.signDate,start,end));
+
+  const revBefore=revRows.reduce((s,c)=>s+(c.valBefore||0),0);
+  const revAfter=revRows.reduce((s,c)=>s+(c.valAfter||0),0);
+  const expBefore=expRows.reduce((s,s2)=>s+(s2.valBefore||0),0);
+  const expAfter=expRows.reduce((s,s2)=>s+(s2.valAfter||0),0);
+  const diffAfter=revAfter-expAfter;
+
+  // Summary cards
+  document.getElementById('rp-summary').innerHTML=`
+    <div class="stat-card"><div class="sc-label">Tổng thu trước VAT</div><div class="sc-value ok" style="font-size:18px">${fmtNumC(revBefore)} ₫</div><div class="sc-sub">${revRows.length} hợp đồng</div></div>
+    <div class="stat-card"><div class="sc-label">Tổng thu sau VAT</div><div class="sc-value ok" style="font-size:18px">${fmtNumC(revAfter)} ₫</div><div class="sc-sub">${reportPeriodLabel()}</div></div>
+    <div class="stat-card"><div class="sc-label">Tổng chi trước VAT</div><div class="sc-value danger" style="font-size:18px">${fmtNumC(expBefore)} ₫</div><div class="sc-sub">${expRows.length} hợp đồng NCC</div></div>
+    <div class="stat-card"><div class="sc-label">Tổng chi sau VAT</div><div class="sc-value danger" style="font-size:18px">${fmtNumC(expAfter)} ₫</div><div class="sc-sub">${reportPeriodLabel()}</div></div>
+    <div class="stat-card"><div class="sc-label">Chênh lệch (Thu - Chi, sau VAT)</div><div class="sc-value ${diffAfter>=0?'ok':'danger'}" style="font-size:18px">${diffAfter>=0?'':'-'}${fmtNumC(Math.abs(diffAfter))} ₫</div><div class="sc-sub">${diffAfter>=0?'Thặng dư':'Thâm hụt'}</div></div>
+  `;
+
+  // Revenue table
+  document.getElementById('rp-rev-count').textContent=revRows.length;
+  const revBody=document.getElementById('rp-rev-body');
+  if(!revRows.length){
+    revBody.innerHTML='<tr><td colspan="7" class="empty">Không có hợp đồng nào trong kỳ này</td></tr>';
+    document.getElementById('rp-rev-foot').innerHTML='';
+  } else {
+    revBody.innerHTML=revRows.map((c,i)=>`<tr>
+      <td style="font-size:12px">${i+1}</td>
+      <td><span class="link-cell" onclick="goPage('contracts')">${c.id}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${c.customer}</td>
+      <td>${typeBadge(c.type)}</td>
+      <td style="font-size:12px">${fmtDate(c.start)}</td>
+      <td style="font-size:12px">${fmtNum(c.valBefore)} ₫</td>
+      <td style="font-size:12px;font-weight:600">${fmtNum(c.valAfter)} ₫</td>
+    </tr>`).join('');
+    document.getElementById('rp-rev-foot').innerHTML=`<tr class="rp-foot-row">
+      <td colspan="5" style="text-align:right">TỔNG CỘNG (${revRows.length} HĐ)</td>
+      <td>${fmtNum(revBefore)} ₫</td>
+      <td>${fmtNum(revAfter)} ₫</td>
+    </tr>`;
+  }
+
+  // Expense table
+  document.getElementById('rp-exp-count').textContent=expRows.length;
+  const expBody=document.getElementById('rp-exp-body');
+  if(!expRows.length){
+    expBody.innerHTML='<tr><td colspan="7" class="empty">Không có hợp đồng NCC nào trong kỳ này</td></tr>';
+    document.getElementById('rp-exp-foot').innerHTML='';
+  } else {
+    expBody.innerHTML=expRows.map((s,i)=>{
+      const typeLabel=s.type==='other'?(s.typeOther||'Khác'):s.type;
+      const typeBadgeClass=s.type==='Cung cấp thiết bị'?'b-cctb':s.type==='Dịch vụ lắp đặt'?'b-dichvu':'b-pending';
+      return`<tr>
+        <td style="font-size:12px">${i+1}</td>
+        <td><span class="link-cell" onclick="goPage('suppliers')">${s.id}</span></td>
+        <td style="font-size:12px;color:var(--text2)">${s.supplierName}</td>
+        <td><span class="badge ${typeBadgeClass}">${typeLabel}</span></td>
+        <td style="font-size:12px">${fmtDate(s.signDate)}</td>
+        <td style="font-size:12px">${fmtNum(s.valBefore)} ₫</td>
+        <td style="font-size:12px;font-weight:600">${fmtNum(s.valAfter)} ₫</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('rp-exp-foot').innerHTML=`<tr class="rp-foot-row">
+      <td colspan="5" style="text-align:right">TỔNG CỘNG (${expRows.length} HĐ)</td>
+      <td>${fmtNum(expBefore)} ₫</td>
+      <td>${fmtNum(expAfter)} ₫</td>
+    </tr>`;
+  }
+}
+
+// ── EXPORT EXCEL (CSV) ──
+function exportReportExcel(){
+  initReportFilters();
+  const[start,end]=getReportRange();
+  const revRows=contracts.filter(c=>inRange(c.start,start,end));
+  const expRows=suppliers.filter(s=>inRange(s.signDate,start,end));
+
+  if(!revRows.length&&!expRows.length){showToast('Không có dữ liệu để xuất','err');return;}
+
+  let csv='\uFEFF';
+  csv+='BÁO CÁO THU CHI - '+reportPeriodLabel()+'\n\n';
+
+  csv+='HỢP ĐỒNG ĐÃ KÝ (THU)\n';
+  csv+='STT,Số HĐ,Khách hàng,Loại,Ngày hiệu lực,GT trước VAT,GT sau VAT\n';
+  let revBefore=0,revAfter=0;
+  revRows.forEach((c,i)=>{
+    revBefore+=c.valBefore||0;revAfter+=c.valAfter||0;
+    csv+=[i+1,c.id,c.customer,c.type,fmtDate(c.start),c.valBefore||0,c.valAfter||0].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')+'\n';
+  });
+  csv+=',,,,"TỔNG CỘNG",'+revBefore+','+revAfter+'\n\n';
+
+  csv+='HỢP ĐỒNG NHÀ CUNG CẤP (CHI)\n';
+  csv+='STT,Số HĐ,Nhà cung cấp,Loại,Ngày ký,GT trước VAT,GT sau VAT\n';
+  let expBefore=0,expAfter=0;
+  expRows.forEach((s,i)=>{
+    expBefore+=s.valBefore||0;expAfter+=s.valAfter||0;
+    const typeLabel=s.type==='other'?(s.typeOther||'Khác'):s.type;
+    csv+=[i+1,s.id,s.supplierName,typeLabel,fmtDate(s.signDate),s.valBefore||0,s.valAfter||0].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')+'\n';
+  });
+  csv+=',,,,"TỔNG CỘNG",'+expBefore+','+expAfter+'\n\n';
+
+  csv+=',,,,,,\n';
+  csv+=',,,,"CHÊNH LỆCH (Thu - Chi, sau VAT)",,'+(revAfter-expAfter)+'\n';
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='bao-cao-thu-chi-'+reportPeriodLabel().replace(/\s+/g,'-')+'.csv';a.click();
+  URL.revokeObjectURL(url);
+  showToast('Đã xuất báo cáo Excel ✓','ok');
+}
+
+// ── EXPORT PDF (in qua trình duyệt) ──
+function printReport(){
+  initReportFilters();
+  const[start,end]=getReportRange();
+  const revRows=contracts.filter(c=>inRange(c.start,start,end));
+  const expRows=suppliers.filter(s=>inRange(s.signDate,start,end));
+
+  const revBefore=revRows.reduce((s,c)=>s+(c.valBefore||0),0);
+  const revAfter=revRows.reduce((s,c)=>s+(c.valAfter||0),0);
+  const expBefore=expRows.reduce((s,s2)=>s+(s2.valBefore||0),0);
+  const expAfter=expRows.reduce((s,s2)=>s+(s2.valAfter||0),0);
+  const diffAfter=revAfter-expAfter;
+
+  let html=`<div class="pr-header">
+    <h1>BÁO CÁO THU CHI</h1>
+    <p>Kiên Thịnh Contract — Hệ thống quản lý hợp đồng</p>
+  </div>
+  <div class="pr-meta">
+    <span><b>Kỳ báo cáo:</b> ${reportPeriodLabel()}</span>
+    <span><b>Ngày xuất báo cáo:</b> ${new Date().toLocaleDateString('vi-VN')}</span>
+    <span><b>Người xuất:</b> ${currentUser?currentUser.name:''}</span>
+  </div>
+  <div class="pr-summary">
+    <div class="pr-summary-box"><div class="pr-label">Tổng thu trước VAT</div><div class="pr-value" style="color:#3B6D11">${fmtNum(revBefore)} ₫</div></div>
+    <div class="pr-summary-box"><div class="pr-label">Tổng thu sau VAT</div><div class="pr-value" style="color:#3B6D11">${fmtNum(revAfter)} ₫</div></div>
+    <div class="pr-summary-box"><div class="pr-label">Tổng chi trước VAT</div><div class="pr-value" style="color:#A32D2D">${fmtNum(expBefore)} ₫</div></div>
+    <div class="pr-summary-box"><div class="pr-label">Tổng chi sau VAT</div><div class="pr-value" style="color:#A32D2D">${fmtNum(expAfter)} ₫</div></div>
+    <div class="pr-summary-box" style="grid-column:1/-1"><div class="pr-label">Chênh lệch Thu - Chi (sau VAT)</div><div class="pr-value" style="color:${diffAfter>=0?'#3B6D11':'#A32D2D'}">${diffAfter>=0?'':'-'}${fmtNum(Math.abs(diffAfter))} ₫ ${diffAfter>=0?'(Thặng dư)':'(Thâm hụt)'}</div></div>
+  </div>
+
+  <div class="pr-section-title">A. CHI TIẾT HỢP ĐỒNG ĐÃ KÝ VỚI KHÁCH HÀNG (THU) — ${revRows.length} hợp đồng</div>
+  <table class="pr-table"><thead><tr>
+    <th>STT</th><th>Số HĐ</th><th>Khách hàng</th><th>Loại HĐ</th><th>Ngày hiệu lực</th><th>GT trước VAT</th><th>GT sau VAT</th>
+  </tr></thead><tbody>`;
+  if(!revRows.length){
+    html+='<tr><td colspan="7" style="text-align:center;color:#8A95A1">Không có dữ liệu</td></tr>';
+  } else {
+    revRows.forEach((c,i)=>{
+      html+=`<tr><td>${i+1}</td><td>${c.id}</td><td>${c.customer}</td><td>${c.type}</td><td>${fmtDate(c.start)}</td><td>${fmtNum(c.valBefore)} ₫</td><td>${fmtNum(c.valAfter)} ₫</td></tr>`;
+    });
+  }
+  html+=`</tbody><tfoot><tr><td colspan="5" style="text-align:right">TỔNG CỘNG</td><td>${fmtNum(revBefore)} ₫</td><td>${fmtNum(revAfter)} ₫</td></tr></tfoot></table>`;
+
+  html+=`<div class="pr-section-title">B. CHI TIẾT HỢP ĐỒNG NHÀ CUNG CẤP (CHI) — ${expRows.length} hợp đồng</div>
+  <table class="pr-table"><thead><tr>
+    <th>STT</th><th>Số HĐ</th><th>Nhà cung cấp</th><th>Loại HĐ</th><th>Ngày ký</th><th>GT trước VAT</th><th>GT sau VAT</th>
+  </tr></thead><tbody>`;
+  if(!expRows.length){
+    html+='<tr><td colspan="7" style="text-align:center;color:#8A95A1">Không có dữ liệu</td></tr>';
+  } else {
+    expRows.forEach((s,i)=>{
+      const typeLabel=s.type==='other'?(s.typeOther||'Khác'):s.type;
+      html+=`<tr><td>${i+1}</td><td>${s.id}</td><td>${s.supplierName}</td><td>${typeLabel}</td><td>${fmtDate(s.signDate)}</td><td>${fmtNum(s.valBefore)} ₫</td><td>${fmtNum(s.valAfter)} ₫</td></tr>`;
+    });
+  }
+  html+=`</tbody><tfoot><tr><td colspan="5" style="text-align:right">TỔNG CỘNG</td><td>${fmtNum(expBefore)} ₫</td><td>${fmtNum(expAfter)} ₫</td></tr></tfoot></table>`;
+
+  html+=`<div class="pr-footer">Báo cáo được tạo tự động bởi Kiên Thịnh Contract — ${new Date().toLocaleString('vi-VN')}</div>`;
+
+  document.getElementById('print-report-area').innerHTML=html;
+  setTimeout(()=>window.print(),100);
+}
+
+
+
+// ══════════════════════════════════════════
+// ACCEPTANCE MODAL
+// ══════════════════════════════════════════
+function openAccModal(){
+  editingId=null;
+  document.getElementById('acc-modal-title').textContent='Thêm nghiệm thu';
+  updateContractDatalists();
+  clearForm(['a-type','a-customer','a-val-after','a-payment','a-expiry','a-delivery','a-note']);
+  document.getElementById('a-id').value='';
+  document.getElementById('a-stage').value='Giao hàng';
+  document.getElementById('a-status').value='inprogress';
+  document.getElementById('a-status-other-wrap').style.display='none';
+  attachedFiles['a-file-list']=[];
+  document.getElementById('a-file-list').innerHTML='';
+  document.getElementById('modal-acceptance').classList.add('open');
+}
+
+function openEditAcc(id){
+  const a=acceptances.find(x=>x.id===id);if(!a)return;
+  editingId=id;
+  document.getElementById('acc-modal-title').textContent='Chỉnh sửa nghiệm thu';
+  updateContractDatalists();
+  document.getElementById('a-id').value=a.cid;
+  syncFromContract('a-id','a-type','a-customer','a-val-after','a-payment','a-expiry');
+  document.getElementById('a-stage').value=a.stage||'Giao hàng';
+  document.getElementById('a-status').value=a.status||'inprogress';
+  document.getElementById('a-delivery').value=a.delivery||'';
+  document.getElementById('a-note').value=a.note||'';
+  renderFileList(a.files||[],'a-file-list',id,'acceptances');
+  document.getElementById('a-status-other-wrap').style.display=a.status==='other'?'block':'none';
+  document.getElementById('a-status-other').value=a.statusOther||'';
+  document.getElementById('modal-acceptance').classList.add('open');
+}
+
+async function saveAcceptance(){
+  const cid=document.getElementById('a-id').value.trim();
+  if(!cid){alert('Vui lòng chọn số hợp đồng!');return;}
+  if(!getContract(cid)){alert('Không tìm thấy hợp đồng '+cid);return;}
+  const status=document.getElementById('a-status').value;
+  const a={
+    id:editingId||('NT-'+Date.now()),
+    cid,
+    stage:document.getElementById('a-stage').value,
+    status,
+    statusOther:status==='other'?document.getElementById('a-status-other').value:'',
+    delivery:document.getElementById('a-delivery').value,
+    note:document.getElementById('a-note').value,
+    files:getAttachedFiles('a-file-list')
+  };
+  showLoader(true);
+  try{
+    await sbUpsert('kc_acceptances', dbA(a));
+    // Sync warranty delivery
+    const war=warranties.find(w=>w.cid===cid);
+    if(war&&a.delivery&&!war.delivery){war.delivery=a.delivery;await sbUpsert('kc_warranties',dbW(war));}
+    await loadAllData();
+    closeModal('modal-acceptance');
+    renderAll();
+    showToast('Đã lưu nghiệm thu ✓','ok');
+  }catch(e){showToast('Lỗi lưu: '+e.message,'err');showLoader(false);}
+}
+
+document.getElementById('a-status').addEventListener('change',function(){
+  document.getElementById('a-status-other-wrap').style.display=this.value==='other'?'block':'none';
+});
+
+// ══════════════════════════════════════════
+// DEBT MODAL
+// ══════════════════════════════════════════
+function openDebtModal(){
+  editingId=null;
+  document.getElementById('debt-modal-title').textContent='Thêm công nợ';
+  updateContractDatalists();
+  clearForm(['d-type','d-customer','d-val-before','d-val-after','d-paid','d-remain','d-invoice-date','d-note']);
+  document.getElementById('d-id').value='';
+  document.getElementById('d-incurred').value='';
+  document.getElementById('d-deadline').value='';
+  document.getElementById('d-invoice').value='no';
+  document.getElementById('modal-debt').classList.add('open');
+}
+
+function openEditDebt(id){
+  const d=debts.find(x=>x.id===id);if(!d)return;
+  editingId=id;
+  document.getElementById('debt-modal-title').textContent='Chỉnh sửa công nợ';
+  updateContractDatalists();
+  document.getElementById('d-id').value=d.cid;
+  syncFromContract('d-id','d-type','d-customer','d-val-after','d-payment','d-expiry','d-val-before');
+  document.getElementById('d-paid').value=d.paid||0;
+  document.getElementById('d-incurred').value=d.incurred||0;
+  document.getElementById('d-deadline').value=d.paymentDeadline||'';
+  calcDebtRemain();
+  document.getElementById('d-invoice').value=d.invoice||'no';
+  document.getElementById('d-invoice-date').value=d.invoiceDate||'';
+  document.getElementById('d-note').value=d.note||'';
+  document.getElementById('modal-debt').classList.add('open');
+}
+
+async function saveDebt(){
+  const cid=document.getElementById('d-id').value.trim();
+  if(!cid){alert('Vui lòng chọn số hợp đồng!');return;}
+  if(!getContract(cid)){alert('Không tìm thấy hợp đồng '+cid);return;}
+  const d={
+    id:editingId||('CN-'+Date.now()),
+    cid,
+    paid:parseFloat(document.getElementById('d-paid').value)||0,
+    incurred:parseFloat(document.getElementById('d-incurred').value)||0,
+    paymentDeadline:document.getElementById('d-deadline').value||null,
+    invoice:document.getElementById('d-invoice').value,
+    invoiceDate:document.getElementById('d-invoice-date').value,
+    note:document.getElementById('d-note').value,
+    files:getAttachedFiles('d-file-list')
+  };
+  showLoader(true);
+  try{
+    await sbUpsert('kc_debts', dbD(d));
+    await loadAllData();
+    closeModal('modal-debt');
+    renderAll();
+    showToast('Đã lưu công nợ ✓','ok');
+  }catch(e){showToast('Lỗi lưu: '+e.message,'err');showLoader(false);}
+}
+
+function calcDebtRemain(){
+  const el=document.getElementById('d-id');
+  if(!el)return;
+  const cid=el.value.trim();
+  const c=contracts.find(x=>x.id===cid);
+  const after=c?c.valAfter:0;
+  const paid=parseFloat(document.getElementById('d-paid').value)||0;
+  const remain=Math.max(0,(after||0)-paid);
+  document.getElementById('d-remain').value=fmtNum(remain)+' ₫';
+}
+
+// ══════════════════════════════════════════
+// WARRANTY MODAL
+// ══════════════════════════════════════════
+function openWarrantyModal(){
+  editingId=null;
+  document.getElementById('war-modal-title').textContent='Thêm bảo hành';
+  updateContractDatalists();
+  clearForm(['w-type','w-customer','w-delivery','w-start','w-end','w-note']);
+  document.getElementById('w-id').value='';
+  document.getElementById('w-duration').value='12';
+  document.getElementById('w-dur-custom-wrap').style.display='none';
+  document.getElementById('w-receivable').value='';
+  document.getElementById('w-issues').value='';
+  document.getElementById('modal-warranty').classList.add('open');
+}
+
+function openEditWarranty(id){
+  const w=warranties.find(x=>x.id===id);if(!w)return;
+  editingId=id;
+  document.getElementById('war-modal-title').textContent='Chỉnh sửa bảo hành';
+  updateContractDatalists();
+  document.getElementById('w-id').value=w.cid;
+  syncWarrantyFromContract();
+  document.getElementById('w-duration').value=['0','6','12'].includes(String(w.duration))?String(w.duration):'custom';
+  if(document.getElementById('w-duration').value==='custom'){
+    document.getElementById('w-dur-custom-wrap').style.display='block';
+    document.getElementById('w-dur-custom').value=w.duration;
+  }
+  document.getElementById('w-start').value=w.start||'';
+  document.getElementById('w-end').value=w.end||'';
+  document.getElementById('w-receivable').value=w.receivable||'';
+  document.getElementById('w-issues').value=w.issues||'';
+  document.getElementById('w-note').value=w.note||'';
+  document.getElementById('modal-warranty').classList.add('open');
+}
+
+async function saveWarranty(){
+  const cid=document.getElementById('w-id').value.trim();
+  if(!cid){alert('Vui lòng chọn số hợp đồng!');return;}
+  if(!getContract(cid)){alert('Không tìm thấy hợp đồng '+cid);return;}
+  const durSel=document.getElementById('w-duration').value;
+  const duration=durSel==='custom'?parseInt(document.getElementById('w-dur-custom').value)||0:parseInt(durSel)||0;
+  const delivery=document.getElementById('w-delivery').value;
+  const startVal=document.getElementById('w-start').value||delivery;
+  const endVal=document.getElementById('w-end').value;
+  const w={
+    id:editingId||('BH-'+Date.now()),
+    cid,duration,delivery,start:startVal,end:endVal,
+    receivable:parseFloat(document.getElementById('w-receivable').value)||0,
+    issues:document.getElementById('w-issues').value||'',
+    note:document.getElementById('w-note').value
+  };
+  showLoader(true);
+  try{
+    await sbUpsert('kc_warranties', dbW(w));
+    await loadAllData();
+    closeModal('modal-warranty');
+    renderAll();
+    showToast('Đã lưu bảo hành ✓','ok');
+  }catch(e){showToast('Lỗi lưu: '+e.message,'err');showLoader(false);}
+}
+
+function syncWarrantyFromContract(){
+  const el=document.getElementById('w-id');
+  if(!el)return;
+  const cid=el.value.trim();
+  if(!cid)return;
+  const c=contracts.find(x=>x.id===cid);
+  if(!c)return;
+  document.getElementById('w-type').value=c.type||'';
+  document.getElementById('w-customer').value=c.customer||'';
+  const acc=acceptances.find(a=>a.cid===cid);
+  if(acc&&acc.delivery){
+    document.getElementById('w-delivery').value=acc.delivery;
+  }
+  calcWarrantyExpiry();
+  showToast('Đã tải: '+c.id+' — '+c.customer,'ok');
+}
+
+function calcWarrantyExpiry(){
+  const durSel=document.getElementById('w-duration').value;
+  document.getElementById('w-dur-custom-wrap').style.display=durSel==='custom'?'block':'none';
+  const months=durSel==='custom'?parseInt(document.getElementById('w-dur-custom').value)||0:parseInt(durSel)||0;
+  const cid=document.getElementById('w-id').value.trim();
+  const acc=getAcceptance(cid);
+  const delivery=document.getElementById('w-delivery').value||(acc?acc.delivery:'');
+  const startInput=document.getElementById('w-start').value||delivery;
+  if(startInput&&months>0){
+    const d=new Date(startInput);d.setMonth(d.getMonth()+months);
+    document.getElementById('w-end').value=d.toISOString().split('T')[0];
+  }
+}
+
+// ══════════════════════════════════════════
+// SYNC FROM CONTRACT
+// ══════════════════════════════════════════
+function syncFromContract(srcId,typeId,customerId,valAfterId,payId,expiryId,valBefId){
+  const el=document.getElementById(srcId);
+  if(!el)return;
+  const cid=el.value.trim();
+  if(!cid)return;
+  const c=contracts.find(x=>x.id===cid);
+  if(!c)return;
+  const setVal=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val===undefined||val===null?'':String(val);};
+  if(typeId)setVal(typeId,c.type||'');
+  if(customerId)setVal(customerId,c.customer||'');
+  if(valAfterId)setVal(valAfterId,c.valAfter?fmtNum(c.valAfter)+' ₫':'');
+  if(payId)setVal(payId,c.payment||'');
+  if(expiryId)setVal(expiryId,c.expiry?fmtDate(c.expiry):'');
+  if(valBefId)setVal(valBefId,c.valBefore?fmtNum(c.valBefore)+' ₫':'');
+  if(srcId==='d-id')calcDebtRemain();
+  showToast('Đã tải: '+c.id+' — '+c.customer,'ok');
+}
+
+// ══════════════════════════════════════════
+// FILE ATTACH
+// ══════════════════════════════════════════
+// attachedFiles lưu {name, size, type, url, uploading} theo listId — file thật lưu trên Supabase Storage
+const attachedFiles={};
+const SB_BUCKET='kc-files';
+const MAX_FILE_SIZE=50*1024*1024; // 50MB
+
+function sanitizeFileName(name){
+  return name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9.\-_]/g,'_');
+}
+
+async function handleFileAttach(inputId,listId){
+  const input=document.getElementById(inputId);
+  const files=Array.from(input.files);
+  if(!attachedFiles[listId])attachedFiles[listId]=[];
+  for(const f of files){
+    if(f.size>MAX_FILE_SIZE){
+      showToast(f.name+' quá lớn (>50MB), bỏ qua','err');
+      continue;
+    }
+    const tempItem={name:f.name,size:f.size,type:f.type,url:'',uploading:true};
+    attachedFiles[listId].push(tempItem);
+    renderAttachedFiles(listId);
+    try{
+      const path=Date.now()+'_'+Math.random().toString(36).slice(2,8)+'_'+sanitizeFileName(f.name);
+      const r=await fetch(SB_URL+'/storage/v1/object/'+SB_BUCKET+'/'+path,{
+        method:'POST',
+        headers:{...SB_HDR,'Content-Type':f.type||'application/octet-stream'},
+        body:f
+      });
+      if(!r.ok)throw new Error(await r.text());
+      tempItem.url=SB_URL+'/storage/v1/object/public/'+SB_BUCKET+'/'+path;
+      tempItem.uploading=false;
+      renderAttachedFiles(listId);
+      showToast('Đã tải lên: '+f.name,'ok');
+    }catch(e){
+      const idx=attachedFiles[listId].indexOf(tempItem);
+      if(idx>=0)attachedFiles[listId].splice(idx,1);
+      showToast('Lỗi tải lên '+f.name+': '+e.message,'err');
+      renderAttachedFiles(listId);
+    }
+  }
+  input.value='';
+}
+
+function getFileIcon(type,name){
+  type=type||'';name=name||'';
+  if(type.includes('pdf')||name.endsWith('.pdf'))return 'fa-file-pdf';
+  if(type.includes('image'))return 'fa-file-image';
+  if(name.endsWith('.doc')||name.endsWith('.docx'))return 'fa-file-word';
+  if(name.endsWith('.xls')||name.endsWith('.xlsx'))return 'fa-file-excel';
+  return 'fa-file';
+}
+
+function fmtFileSize(bytes){
+  if(!bytes)return'';
+  if(bytes<1024*1024)return Math.round(bytes/1024)+'KB';
+  return(bytes/1024/1024).toFixed(1)+'MB';
+}
+
+function renderAttachedFiles(listId){
+  const list=attachedFiles[listId]||[];
+  const el=document.getElementById(listId);
+  if(!el)return;
+  if(!list.length){el.innerHTML='';return;}
+  el.innerHTML=list.map((f,i)=>`
+    <div class="file-item">
+      <i class="fa-solid ${f.uploading?'fa-spinner fa-spin':getFileIcon(f.type,f.name)}" style="color:var(--blue)"></i>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.name}">${f.name}</span>
+      <span style="font-size:10px;color:var(--text3);margin-right:4px">${f.uploading?'Đang tải lên...':fmtFileSize(f.size)}</span>
+      ${(!f.uploading&&(f.url||f.data))?`<a href="${f.url||f.data}" download="${f.name}" target="_blank" title="Tải xuống" style="color:var(--blue);font-size:13px;margin-right:2px"><i class="fa-solid fa-download"></i></a>`:''}
+      <i class="fi-remove fa-solid fa-xmark" onclick="removeFile('${listId}',${i})" title="Xóa"></i>
+    </div>`).join('');
+}
+
+function removeFile(listId,idx){
+  if(attachedFiles[listId])attachedFiles[listId].splice(idx,1);
+  renderAttachedFiles(listId);
+}
+
+function renderFileList(files,listId){
+  const el=document.getElementById(listId);
+  if(!el)return;
+  // Load file đã lưu (url mới, hoặc data base64 cũ để tương thích ngược)
+  attachedFiles[listId]=(files||[]).map(f=>({name:f.name,size:f.size||0,type:f.type||'',url:f.url||'',data:f.data||''}));
+  renderAttachedFiles(listId);
+}
+
+function getAttachedFiles(listId){
+  return(attachedFiles[listId]||[]).filter(f=>!f.uploading).map(f=>({name:f.name,size:f.size,type:f.type,url:f.url||'',data:f.data||''}));
+}
+
+
+// ══════════════════════════════════════════
+// SORT STATE
+// ══════════════════════════════════════════
+let sortState={col:null,dir:'asc'};
+function thSort(col,data,renderFn){
+  if(sortState.col===col){sortState.dir=sortState.dir==='asc'?'desc':'asc';}
+  else{sortState.col=col;sortState.dir='asc';}
+  renderFn();
+}
+function sortIcon(col){
+  if(sortState.col!==col)return'<span class="sort-icon">⇅</span>';
+  return sortState.dir==='asc'?'<span class="sort-icon asc">▲</span>':'<span class="sort-icon desc">▼</span>';
+}
+function applySort(arr,col,dir){
+  if(!col)return arr;
+  return [...arr].sort((a,b)=>{
+    let av=a[col],bv=b[col];
+    if(av===undefined||av===null)av='';
+    if(bv===undefined||bv===null)bv='';
+    // numeric
+    if(!isNaN(parseFloat(av))&&!isNaN(parseFloat(bv))){av=parseFloat(av);bv=parseFloat(bv);}
+    else{av=String(av).toLowerCase();bv=String(bv).toLowerCase();}
+    if(av<bv)return dir==='asc'?-1:1;
+    if(av>bv)return dir==='asc'?1:-1;
+    return 0;
+  });
+}
+
+// ══════════════════════════════════════════
+// EXCEL EXPORT
+// ══════════════════════════════════════════
+function exportToExcel(data,headers,filename){
+  if(!data.length){showToast('Không có dữ liệu để xuất','err');return;}
+  const keys=Object.keys(headers);
+  const labels=Object.values(headers);
+  let csv=labels.join(',')+'\n';
+  data.forEach(row=>{
+    csv+=keys.map(k=>{
+      const v=row[k]===undefined||row[k]===null?'':String(row[k]);
+      return '"'+v.replace(/"/g,'""')+'"';
+    }).join(',')+'\n';
+  });
+  const bom='﻿';
+  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename+'.csv';a.click();
+  URL.revokeObjectURL(url);
+  showToast('Đã xuất file '+filename+'.csv ✓','ok');
+}
+
+function exportContracts(){
+  exportToExcel(contracts,{
+    id:'Số HĐ',type:'Loại',customer:'Khách hàng',
+    valBefore:'GT trước VAT',valAfter:'GT sau VAT',
+    start:'Ngày hiệu lực',expiry:'Ngày hết hạn',payment:'Điều kiện TT',note:'Ghi chú'
+  },'hop-dong');
+}
+function exportAcceptances(){
+  const data=acceptances.map(a=>{
+    const c=getContract(a.cid)||{};
+    return{...a,customer:c.customer,type:c.type,valAfter:c.valAfter,payment:c.payment,expiry:c.expiry};
+  });
+  exportToExcel(data,{
+    cid:'Số HĐ',type:'Loại',customer:'Khách hàng',valAfter:'GT sau VAT',
+    stage:'Giai đoạn',status:'Tình trạng',delivery:'Ngày giao hàng',note:'Ghi chú'
+  },'nghiem-thu');
+}
+function exportDebts(){
+  const data=debts.map(d=>{
+    const c=getContract(d.cid)||{};
+    const remain=Math.max(0,(c.valAfter||0)-(d.paid||0));
+    return{...d,customer:c.customer,type:c.type,valBefore:c.valBefore,valAfter:c.valAfter,remain};
+  });
+  exportToExcel(data,{
+    cid:'Số HĐ',type:'Loại',customer:'Khách hàng',
+    valBefore:'GT trước VAT',valAfter:'GT sau VAT',
+    paid:'Đã TT',incurred:'Giá trị phát sinh',remain:'Còn lại',
+    paymentDeadline:'Hạn TT',invoice:'Hóa đơn',invoiceDate:'Ngày xuất HĐ',note:'Ghi chú'
+  },'cong-no');
+}
+function exportWarranties(){
+  const data=warranties.map(w=>{
+    const c=getContract(w.cid)||{};
+    return{...w,customer:c.customer,type:c.type};
+  });
+  exportToExcel(data,{
+    cid:'Số HĐ',type:'Loại',customer:'Khách hàng',
+    duration:'Thời gian BH (tháng)',delivery:'Ngày giao hàng',
+    start:'Hiệu lực BH',end:'Hết hạn BH',
+    receivable:'Giá trị phải thu',issues:'Vấn đề BH',note:'Ghi chú'
+  },'bao-hanh');
+}
+
+
+// ══════════════════════════════════════════
+// GOOGLE DRIVE INTEGRATION
+// ══════════════════════════════════════════
+const GDRIVE_CLIENT_ID = '137780375230-p3hmjl1n622tqc9qfs43chlg8btg3ipj.apps.googleusercontent.com';
+const GDRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
+const GDRIVE_FOLDER_NAME = 'Kiên Thịnh Contract';
+
+let driveAccessToken = null;
+let driveFolderId = null;
+let driveConnected = false;
+let currentPickerListId = null;
+
+// ── Khởi tạo Google Identity Services ──
+function initGoogleDrive(){
+  if(typeof google === 'undefined'){
+    setTimeout(initGoogleDrive, 500);
+    return;
+  }
+  // Thử restore token từ sessionStorage
+  const saved = sessionStorage.getItem('gd_token');
+  if(saved){
+    driveAccessToken = saved;
+    driveConnected = true;
+    updateDriveUI(true);
+  }
+}
+
+function driveSignIn(){
+  if(typeof google === 'undefined'){
+    showToast('Đang tải Google API, thử lại sau vài giây...','err');
+    return;
+  }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GDRIVE_CLIENT_ID,
+    scope: GDRIVE_SCOPES,
+    callback: async (resp) => {
+      if(resp.error){ showToast('Lỗi kết nối Drive: '+resp.error,'err'); return; }
+      driveAccessToken = resp.access_token;
+      driveConnected = true;
+      sessionStorage.setItem('gd_token', driveAccessToken);
+      updateDriveUI(true);
+      showToast('Đã kết nối Google Drive ✓','ok');
+      // Tạo folder nếu chưa có
+      await ensureDriveFolder();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function driveSignOut(){
+  if(driveAccessToken) google.accounts.oauth2.revoke(driveAccessToken);
+  driveAccessToken = null;
+  driveConnected = false;
+  driveFolderId = null;
+  sessionStorage.removeItem('gd_token');
+  updateDriveUI(false);
+  showToast('Đã ngắt kết nối Drive','ok');
+}
+
+function updateDriveUI(connected){
+  const btn = document.getElementById('btn-drive-connect');
+  const statusBar = document.getElementById('drive-status-bar');
+  if(!btn) return;
+  if(connected){
+    btn.className = 'btn-drive connected';
+    btn.innerHTML = '<i class="fa-brands fa-google-drive"></i> Drive đã kết nối';
+    btn.onclick = driveSignOut;
+    statusBar.innerHTML = '<span class="drive-status"><i class="fa-solid fa-circle" style="color:#34A853;font-size:8px"></i> Drive sẵn sàng</span>';
+  } else {
+    btn.className = 'btn-drive';
+    btn.innerHTML = '<i class="fa-brands fa-google-drive"></i> Kết nối Drive';
+    btn.onclick = driveSignIn;
+    statusBar.innerHTML = '';
+  }
+}
+
+// ── Tạo/Tìm folder "Kiên Thịnh Contract" trên Drive ──
+async function ensureDriveFolder(){
+  if(driveFolderId) return driveFolderId;
+  try{
+    // Tìm folder đã có
+    const searchRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${GDRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
+      {headers: {'Authorization': 'Bearer '+driveAccessToken}}
+    );
+    const searchData = await searchRes.json();
+    if(searchData.files && searchData.files.length > 0){
+      driveFolderId = searchData.files[0].id;
+      return driveFolderId;
+    }
+    // Tạo folder mới
+    const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer '+driveAccessToken, 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: GDRIVE_FOLDER_NAME,
+        mimeType: 'application/vnd.google-apps.folder'
+      })
+    });
+    const folderData = await createRes.json();
+    driveFolderId = folderData.id;
+    showToast('Đã tạo thư mục "'+GDRIVE_FOLDER_NAME+'" trên Drive ✓','ok');
+    return driveFolderId;
+  } catch(e){
+    showToast('Lỗi tạo thư mục Drive: '+e.message,'err');
+    return null;
+  }
+}
+
+// ── Upload file lên Drive ──
+async function uploadFileToDrive(file){
+  if(!driveConnected || !driveAccessToken){
+    showToast('Vui lòng kết nối Google Drive trước','err');
+    return null;
+  }
+  const folderId = await ensureDriveFolder();
+  try{
+    const metadata = {
+      name: file.name,
+      parents: folderId ? [folderId] : []
+    };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+    form.append('file', file);
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer '+driveAccessToken},
+      body: form
+    });
+    if(!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch(e){
+    showToast('Lỗi upload Drive: '+e.message,'err');
+    return null;
+  }
+}
+
+// ── Override handleFileAttach để upload lên Drive nếu đã kết nối ──
+async function handleFileAttach(inputId, listId){
+  const input = document.getElementById(inputId);
+  const files = Array.from(input.files);
+  if(!attachedFiles[listId]) attachedFiles[listId] = [];
+
+  for(const f of files){
+    if(f.size > MAX_FILE_SIZE){
+      showToast(f.name+' quá lớn (>50MB), bỏ qua','err');
+      continue;
+    }
+    const tempItem = {name:f.name, size:f.size, type:f.type, url:'', uploading:true, source:'local'};
+    attachedFiles[listId].push(tempItem);
+    renderAttachedFiles(listId);
+
+    if(driveConnected){
+      // Upload lên Drive
+      showToast('Đang tải '+f.name+' lên Drive...','ok');
+      const driveFile = await uploadFileToDrive(f);
+      if(driveFile){
+        tempItem.url = driveFile.webViewLink || driveFile.webContentLink || '';
+        tempItem.driveId = driveFile.id;
+        tempItem.source = 'drive';
+        tempItem.uploading = false;
+        renderAttachedFiles(listId);
+        showToast('✓ Đã lưu '+f.name+' lên Drive','ok');
+      } else {
+        // Fallback lên Supabase Storage
+        await uploadToSupabase(f, tempItem, listId);
+      }
+    } else {
+      // Dùng Supabase Storage
+      await uploadToSupabase(f, tempItem, listId);
+    }
+  }
+  input.value = '';
+}
+
+async function uploadToSupabase(f, tempItem, listId){
+  try{
+    const path = Date.now()+'_'+Math.random().toString(36).slice(2,8)+'_'+sanitizeFileName(f.name);
+    const r = await fetch(SB_URL+'/storage/v1/object/'+SB_BUCKET+'/'+path, {
+      method: 'POST',
+      headers: {...SB_HDR, 'Content-Type': f.type||'application/octet-stream'},
+      body: f
+    });
+    if(!r.ok) throw new Error(await r.text());
+    tempItem.url = SB_URL+'/storage/v1/object/public/'+SB_BUCKET+'/'+path;
+    tempItem.source = 'supabase';
+    tempItem.uploading = false;
+    renderAttachedFiles(listId);
+    showToast('✓ Đã tải lên: '+f.name,'ok');
+  } catch(e){
+    const idx = attachedFiles[listId].indexOf(tempItem);
+    if(idx>=0) attachedFiles[listId].splice(idx,1);
+    showToast('Lỗi tải lên '+f.name+': '+e.message,'err');
+    renderAttachedFiles(listId);
+  }
+}
+
+// ── Chọn file từ Drive (Google Picker) ──
+let pickerApiLoaded = false;
+function drivePickerOpen(listId){
+  if(!driveConnected){ driveSignIn(); currentPickerListId=listId; return; }
+  currentPickerListId = listId;
+  if(!pickerApiLoaded){
+    gapi.load('picker', ()=>{ pickerApiLoaded=true; buildPicker(listId); });
+    if(typeof gapi === 'undefined'){
+      // Load gapi
+      const s = document.createElement('script');
+      s.src = 'https://apis.google.com/js/api.js';
+      s.onload = () => gapi.load('picker', ()=>{ pickerApiLoaded=true; buildPicker(listId); });
+      document.head.appendChild(s);
+    } else {
+      gapi.load('picker', ()=>{ pickerApiLoaded=true; buildPicker(listId); });
+    }
+  } else {
+    buildPicker(listId);
+  }
+}
+
+function buildPicker(listId){
+  const view = new google.picker.DocsView()
+    .setIncludeFolders(false)
+    .setSelectFolderEnabled(false);
+  const picker = new google.picker.PickerBuilder()
+    .addView(view)
+    .addView(new google.picker.DocsUploadView())
+    .setOAuthToken(driveAccessToken)
+    .setCallback((data)=>pickerCallback(data, listId))
+    .setTitle('Chọn file từ Google Drive')
+    .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+    .build();
+  picker.setVisible(true);
+}
+
+function pickerCallback(data, listId){
+  if(data.action !== google.picker.Action.PICKED) return;
+  if(!attachedFiles[listId]) attachedFiles[listId]=[];
+  data.docs.forEach(doc=>{
+    attachedFiles[listId].push({
+      name: doc.name,
+      size: doc.sizeBytes||0,
+      type: doc.mimeType||'',
+      url: doc.url||doc.alternateLink||'',
+      driveId: doc.id,
+      source: 'drive',
+      uploading: false
+    });
+  });
+  renderAttachedFiles(listId);
+  showToast('Đã thêm '+data.docs.length+' file từ Drive ✓','ok');
+}
+
+// ── Render file item — hiện icon Drive nếu là file Drive ──
+function renderAttachedFiles(listId){
+  const list = attachedFiles[listId]||[];
+  const el = document.getElementById(listId);
+  if(!el) return;
+  if(!list.length){el.innerHTML='';return;}
+  el.innerHTML = list.map((f,i)=>`
+    <div class="file-item">
+      ${f.uploading
+        ? '<i class="fa-solid fa-spinner fa-spin" style="color:var(--blue)"></i>'
+        : f.source==='drive'
+          ? '<i class="fa-brands fa-google-drive" style="color:#4285F4"></i>'
+          : '<i class="fa-solid '+getFileIcon(f.type,f.name)+'" style="color:var(--blue)"></i>'
+      }
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.name}">${f.name}</span>
+      <span style="font-size:10px;color:var(--text3);margin-right:4px">${f.uploading?'Đang tải...':fmtFileSize(f.size)}</span>
+      ${!f.uploading&&(f.url||f.data)?`<a href="${f.url||f.data}" target="_blank" title="Mở/Tải xuống" style="color:var(--blue);font-size:13px;margin-right:2px"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>`:''}
+      <i class="fi-remove fa-solid fa-xmark" onclick="removeFile('${listId}',${i})" title="Xóa"></i>
+    </div>`).join('');
+}
+
+// Init khi app load
+document.addEventListener('DOMContentLoaded', ()=>setTimeout(initGoogleDrive, 1000));
+
+// ══════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════
+async function deleteItem(type,id){
+  if(!confirm('Xóa dữ liệu này?'))return;
+  const tblMap={contracts:'kc_contracts',acceptances:'kc_acceptances',debts:'kc_debts',warranties:'kc_warranties',suppliers:'kc_suppliers'};
+  showLoader(true);
+  try{
+    await sbDelete(tblMap[type],id);
+    await loadAllData();
+    renderAll();
+    showToast('Đã xóa','ok');
+  }catch(e){showToast('Lỗi xóa: '+e.message,'err');showLoader(false);}
+}
+
+// ══════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════
+function renderAdmin(){
+  const pending=users.filter(u=>u.status==='pending').length;
+  const tb=document.getElementById('admin-users-body');
+  tb.innerHTML=users.map(u=>`<tr>
+    <td>${u.name}</td>
+    <td style="font-size:12px;color:var(--text2)">${u.email}</td>
+    <td><span class="badge ${u.role==='admin'?'b-done':'b-invoice-no'}">${u.role==='admin'?'Admin':'Thành viên'}</span></td>
+    <td><span class="status-dot ${u.status==='approved'?'dot-green':u.status==='pending'?'dot-amber':'dot-gray'}"></span>${{approved:'Hoạt động',pending:'Chờ duyệt',rejected:'Từ chối'}[u.status]||u.status}</td>
+    <td style="font-size:12px">${fmtDate(u.created)}</td>
+    <td><span style="display:flex;gap:4px;flex-wrap:wrap">
+      ${u.status==='pending'?`<button class="btn-sm" onclick="approveUser('${u.id}')"><i class="fa-solid fa-check" style="color:var(--green)"></i> Duyệt</button><button class="btn-sm btn-danger-sm" onclick="rejectUser('${u.id}')">Từ chối</button>`:''}
+      ${u.id!==currentUser.id&&u.status==='approved'?`<button class="btn-sm btn-danger-sm" onclick="deleteUser('${u.id}')">Xóa</button>`:''}
+      ${u.id===currentUser.id?`<span style="font-size:11px;color:var(--text2)">(Bạn)</span>`:''}
+    </span></td>
+  </tr>`).join('');
+  updatePendingBadge();
+}
+
+async function approveUser(id){const u=users.find(x=>x.id===id);if(!u)return;u.status='approved';try{await sbUpsert('kc_users',dbU(u));await loadAllData();renderAdmin();showToast('Đã duyệt tài khoản','ok');}catch(e){showToast('Lỗi: '+e.message,'err');}}
+async function rejectUser(id){if(!confirm('Từ chối tài khoản này?'))return;const u=users.find(x=>x.id===id);if(!u)return;u.status='rejected';try{await sbUpsert('kc_users',dbU(u));await loadAllData();renderAdmin();showToast('Đã từ chối','ok');}catch(e){showToast('Lỗi: '+e.message,'err');}}
+async function deleteUser(id){if(!confirm('Xóa tài khoản này?'))return;try{await sbDelete('kc_users',id);await loadAllData();renderAdmin();showToast('Đã xóa tài khoản','ok');}catch(e){showToast('Lỗi: '+e.message,'err');}}
+
+function updatePendingBadge(){
+  const n=users.filter(u=>u.status==='pending').length;
+  const el=document.getElementById('pending-count');
+  if(el){el.textContent=n;el.style.display=n>0?'inline':'none';}
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+async function saveProfile(){
+  const name=document.getElementById('set-name').value.trim();
+  if(!name){alert('Tên không được để trống!');return;}
+  const u=users.find(x=>x.id===currentUser.id);
+  if(u){
+    u.name=name;
+    try{await sbUpsert('kc_users',dbU(u));currentUser.name=name;document.getElementById('sidebar-user').querySelector('.su-name').textContent=name;showToast('Đã lưu thông tin ✓','ok');}
+    catch(e){showToast('Lỗi: '+e.message,'err');}
+  }
+}
+
+async function changePassword(){
+  const cur=document.getElementById('pw-current').value;
+  const nw=document.getElementById('pw-new').value;
+  const conf=document.getElementById('pw-confirm').value;
+  const msg=document.getElementById('pw-msg');
+  const showPwMsg=(m,ok)=>{msg.textContent=m;msg.className='auth-msg show'+(ok?' success':'');msg.style.display='block';setTimeout(()=>msg.style.display='none',3000);}
+  if(!cur||!nw||!conf){showPwMsg('Vui lòng điền đầy đủ.');return;}
+  if(cur!==currentUser.password){showPwMsg('Mật khẩu hiện tại không đúng.');return;}
+  if(nw.length<6){showPwMsg('Mật khẩu mới tối thiểu 6 ký tự.');return;}
+  if(nw!==conf){showPwMsg('Mật khẩu xác nhận không khớp.');return;}
+  const u=users.find(x=>x.id===currentUser.id);
+  if(u){u.password=nw;try{await sbUpsert('kc_users',dbU(u));}catch(e){showPwMsg('Lỗi lưu: '+e.message);return;}}
+  currentUser.password=nw;
+  document.getElementById('pw-current').value='';
+  document.getElementById('pw-new').value='';
+  document.getElementById('pw-confirm').value='';
+  showPwMsg('Đổi mật khẩu thành công!',true);
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function clearForm(ids){ids.forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.disabled=false;}});}
+
+function updateCustomerDatalist(){
+  const dl=document.getElementById('customer-list');
+  if(!dl)return;
+  const customers=[...new Set(contracts.map(c=>c.customer).filter(Boolean))];
+  dl.innerHTML=customers.map(c=>`<option value="${c}">`).join('');
+}
+
+function updateContractDatalists(){
+  const opts='<option value="">-- Chọn số hợp đồng --</option>'+contracts.map(c=>'<option value="'+c.id+'">'+c.id+' — '+c.customer+'</option>').join('');
+  ['a-id','d-id','w-id'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const cur=el.value;
+    el.innerHTML=opts;
+    if(cur)el.value=cur;
+  });
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+});
+
+// Auto reload contract list when user focuses on select dropdowns
+['a-id','d-id','w-id'].forEach(id=>{
+  // Use event delegation since elements exist at this point
+  document.addEventListener('focusin',function(e){
+    if(e.target&&e.target.id===id){
+      updateContractDatalists();
+    }
+  });
+  document.addEventListener('mousedown',function(e){
+    if(e.target&&e.target.id===id){
+      updateContractDatalists();
+    }
+  });
+});
+
+// Toast notification
+function showToast(msg,type){
+  let t=document.getElementById('app-toast');
+  if(!t){t=document.createElement('div');t.id='app-toast';t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:all .3s;pointer-events:none';document.body.appendChild(t);}
+  t.textContent=msg;
+  t.style.background=type==='ok'?'#3B6D11':type==='err'?'#A32D2D':'#185FA5';
+  t.style.color='#fff';
+  t.style.opacity='1';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.style.opacity='0',2500);
+}
+</script>
+
+<!-- ═══ PRINT REPORT AREA (PDF) ═══ -->
+<div id="print-report-area"></div>
+</body>
+</html>
