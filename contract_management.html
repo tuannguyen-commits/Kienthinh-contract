@@ -420,7 +420,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
             <option value="inprogress">Đang triển khai</option>
             <option value="done">Hoàn thành</option>
           </select>
-          <button class="btn-add" onclick="openAccModal()"><i class="fa-solid fa-plus"></i> Thêm nghiệm thu</button>
+          <button class="btn-add" onclick="openAccModal()"><i class="fa-solid fa-plus"></i> Thêm / Cập nhật nghiệm thu</button>
           <button class="btn-excel" onclick="exportAcceptances()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
         </div>
         <div class="tbl-wrap" style="overflow-x:auto">
@@ -448,7 +448,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
             <option value="no">Chưa xuất</option>
             <option value="yes">Đã xuất</option>
           </select>
-          <button class="btn-add" onclick="openDebtModal()"><i class="fa-solid fa-plus"></i> Thêm công nợ</button>
+          <button class="btn-add" onclick="openDebtModal()"><i class="fa-solid fa-plus"></i> Thêm / Cập nhật công nợ</button>
           <button class="btn-excel" onclick="exportDebts()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
         </div>
         <div class="tbl-wrap" style="overflow-x:auto">
@@ -479,7 +479,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
             <option value="expired">Hết hạn</option>
             <option value="none">Không bảo hành</option>
           </select>
-          <button class="btn-add" onclick="openWarrantyModal()"><i class="fa-solid fa-plus"></i> Thêm bảo hành</button>
+          <button class="btn-add" onclick="openWarrantyModal()"><i class="fa-solid fa-plus"></i> Thêm / Cập nhật bảo hành</button>
           <button class="btn-excel" onclick="exportWarranties()"><i class="fa-solid fa-file-csv"></i> Xuất Excel</button>
         </div>
         <div class="tbl-wrap" style="overflow-x:auto">
@@ -722,11 +722,12 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
     <div class="fg">
       <div class="form-field fg-full"><label>Số hợp đồng *</label>
         <div style="display:flex;gap:8px">
-          <select id="a-id" onchange="syncFromContract('a-id','a-type','a-customer','a-val-after','a-payment','a-expiry');document.getElementById('a-picker').classList.remove('show')" style="font-family:var(--font);flex:1">
+          <select id="a-id" onchange="onAcceptanceContractSelect()" style="font-family:var(--font);flex:1">
             <option value="">-- Chọn số hợp đồng --</option>
           </select>
         </div>
         <div class="contract-picker" id="a-picker"></div>
+        <div id="a-existing-hint" style="display:none;margin-top:6px;padding:8px 12px;border-radius:6px;background:var(--blue-light);font-size:12px;align-items:center;gap:8px"></div>
       </div>
       <div class="form-field"><label>Loại hợp đồng</label><input type="text" id="a-type" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
       <div class="form-field fg-full"><label>Khách hàng</label><input type="text" id="a-customer" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
@@ -776,9 +777,10 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
     </div>
     <div class="fg">
       <div class="form-field fg-full"><label>Số hợp đồng *</label>
-        <select id="d-id" onchange="syncFromContract('d-id','d-type','d-customer','d-val-after','d-payment','d-expiry','d-val-before')" style="font-family:var(--font);width:100%">
+        <select id="d-id" onchange="onDebtContractSelect()" style="font-family:var(--font);width:100%">
           <option value="">-- Chọn số hợp đồng --</option>
         </select>
+        <div id="d-existing-hint" style="display:none;margin-top:6px;padding:8px 12px;border-radius:6px;background:var(--blue-light);font-size:12px;align-items:center;gap:8px"></div>
       </div>
       <div class="form-field"><label>Loại hợp đồng</label><input type="text" id="d-type" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
       <div class="form-field fg-full"><label>Khách hàng</label><input type="text" id="d-customer" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
@@ -823,9 +825,10 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
     </div>
     <div class="fg">
       <div class="form-field fg-full"><label>Số hợp đồng *</label>
-        <select id="w-id" onchange="syncWarrantyFromContract()" style="font-family:var(--font);width:100%">
+        <select id="w-id" onchange="onWarrantyContractSelect()" style="font-family:var(--font);width:100%">
           <option value="">-- Chọn số hợp đồng --</option>
         </select>
+        <div id="w-existing-hint" style="display:none;margin-top:6px;padding:8px 12px;border-radius:6px;background:var(--blue-light);font-size:12px;align-items:center;gap:8px"></div>
       </div>
       <div class="form-field"><label>Loại hợp đồng</label><input type="text" id="w-type" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
       <div class="form-field fg-full"><label>Khách hàng</label><input type="text" id="w-customer" style="background:#F7F8FA;color:var(--text2);pointer-events:none" tabindex="-1"></div>
@@ -2119,6 +2122,76 @@ function printReport(){
 // ══════════════════════════════════════════
 // ACCEPTANCE MODAL
 // ══════════════════════════════════════════
+
+// ── Auto-load nghiệm thu khi chọn HĐ ──
+function onAcceptanceContractSelect(){
+  syncFromContract('a-id','a-type','a-customer','a-val-after','a-payment','a-expiry');
+  document.getElementById('a-picker').classList.remove('show');
+  const cid=document.getElementById('a-id').value.trim();
+  const existing=acceptances.find(a=>a.cid===cid);
+  const hint=document.getElementById('a-existing-hint');
+  if(existing){
+    editingId=existing.id;
+    document.getElementById('acc-modal-title').textContent='Cập nhật nghiệm thu';
+    document.getElementById('a-stage').value=existing.stage||'Giao hàng';
+    document.getElementById('a-status').value=existing.status||'inprogress';
+    document.getElementById('a-status-other-wrap').style.display=existing.status==='other'?'block':'none';
+    document.getElementById('a-status-other').value=existing.statusOther||'';
+    document.getElementById('a-delivery').value=existing.delivery||'';
+    document.getElementById('a-note').value=existing.note||'';
+    renderFileList(existing.files||[],'a-file-list');
+    if(hint){hint.style.display='flex';hint.innerHTML='<i class="fa-solid fa-circle-info" style="color:var(--blue)"></i>&nbsp; Đã tải nghiệm thu hiện có — đang <b style="margin:0 3px">cập nhật</b> chứ không tạo mới';}
+  } else {
+    editingId=null;
+    document.getElementById('acc-modal-title').textContent='Thêm nghiệm thu mới';
+    document.getElementById('a-stage').value='Giao hàng';
+    document.getElementById('a-status').value='inprogress';
+    document.getElementById('a-status-other-wrap').style.display='none';
+    document.getElementById('a-delivery').value='';
+    document.getElementById('a-note').value='';
+    attachedFiles['a-file-list']=[];
+    document.getElementById('a-file-list').innerHTML='';
+    if(hint){hint.style.display='flex';hint.innerHTML='<i class="fa-solid fa-plus-circle" style="color:var(--green)"></i>&nbsp; Chưa có nghiệm thu cho HĐ này — sẽ <b style="margin:0 3px">tạo mới</b>';}
+  }
+}
+
+// ── Auto-load bảo hành khi chọn HĐ ──
+function onWarrantyContractSelect(){
+  syncWarrantyFromContract();
+  const cid=document.getElementById('w-id').value.trim();
+  const existing=warranties.find(w=>w.cid===cid);
+  const hint=document.getElementById('w-existing-hint');
+  if(existing){
+    editingId=existing.id;
+    document.getElementById('war-modal-title').textContent='Cập nhật bảo hành';
+    const dur=String(existing.duration);
+    document.getElementById('w-duration').value=['0','6','12'].includes(dur)?dur:'custom';
+    if(!['0','6','12'].includes(dur)){
+      document.getElementById('w-dur-custom-wrap').style.display='block';
+      document.getElementById('w-dur-custom').value=existing.duration;
+    } else {
+      document.getElementById('w-dur-custom-wrap').style.display='none';
+    }
+    document.getElementById('w-start').value=existing.start||'';
+    document.getElementById('w-end').value=existing.end||'';
+    document.getElementById('w-receivable').value=existing.receivable||'';
+    document.getElementById('w-issues').value=existing.issues||'';
+    document.getElementById('w-note').value=existing.note||'';
+    if(hint){hint.style.display='flex';hint.innerHTML='<i class="fa-solid fa-circle-info" style="color:var(--blue)"></i>&nbsp; Đã tải bảo hành hiện có — đang <b style="margin:0 3px">cập nhật</b> chứ không tạo mới';}
+  } else {
+    editingId=null;
+    document.getElementById('war-modal-title').textContent='Thêm bảo hành mới';
+    document.getElementById('w-duration').value='12';
+    document.getElementById('w-dur-custom-wrap').style.display='none';
+    document.getElementById('w-start').value='';
+    document.getElementById('w-end').value='';
+    document.getElementById('w-receivable').value='';
+    document.getElementById('w-issues').value='';
+    document.getElementById('w-note').value='';
+    if(hint){hint.style.display='flex';hint.innerHTML='<i class="fa-solid fa-plus-circle" style="color:var(--green)"></i>&nbsp; Chưa có bảo hành cho HĐ này — sẽ <b style="margin:0 3px">tạo mới</b>';}
+  }
+}
+
 function openAccModal(){
   editingId=null;
   document.getElementById('acc-modal-title').textContent='Thêm nghiệm thu';
@@ -2130,6 +2203,8 @@ function openAccModal(){
   document.getElementById('a-status-other-wrap').style.display='none';
   attachedFiles['a-file-list']=[];
   document.getElementById('a-file-list').innerHTML='';
+  const ah=document.getElementById('a-existing-hint');
+  if(ah)ah.style.display='none';
   document.getElementById('modal-acceptance').classList.add('open');
 }
 
@@ -2187,14 +2262,50 @@ document.getElementById('a-status').addEventListener('change',function(){
 // ══════════════════════════════════════════
 function openDebtModal(){
   editingId=null;
-  document.getElementById('debt-modal-title').textContent='Thêm công nợ';
+  document.getElementById('debt-modal-title').textContent='Thêm / Cập nhật công nợ';
   updateContractDatalists();
   clearForm(['d-type','d-customer','d-val-before','d-val-after','d-paid','d-remain','d-invoice-date','d-note']);
   document.getElementById('d-id').value='';
   document.getElementById('d-incurred').value='';
   document.getElementById('d-deadline').value='';
   document.getElementById('d-invoice').value='no';
+  // Reset hint
+  const hint=document.getElementById('d-existing-hint');
+  if(hint)hint.style.display='none';
   document.getElementById('modal-debt').classList.add('open');
+}
+
+// Khi chọn số HĐ trong modal công nợ — tự load bản ghi cũ nếu đã có
+function onDebtContractSelect(){
+  syncFromContract('d-id','d-type','d-customer','d-val-after','d-payment','d-expiry','d-val-before');
+  const cid=document.getElementById('d-id').value.trim();
+  const existing=debts.find(d=>d.cid===cid);
+  const hint=document.getElementById('d-existing-hint');
+  if(existing){
+    // Tự động load bản ghi cũ vào form để cập nhật
+    editingId=existing.id;
+    document.getElementById('debt-modal-title').textContent='Cập nhật công nợ';
+    document.getElementById('d-paid').value=existing.paid||0;
+    document.getElementById('d-incurred').value=existing.incurred||0;
+    document.getElementById('d-deadline').value=existing.paymentDeadline||'';
+    document.getElementById('d-invoice').value=existing.invoice||'no';
+    document.getElementById('d-invoice-date').value=existing.invoiceDate||'';
+    document.getElementById('d-note').value=existing.note||'';
+    calcDebtRemain();
+    if(hint){hint.style.display='flex';hint.innerHTML='<i class="fa-solid fa-circle-info" style="color:var(--blue)"></i> Đã tải công nợ hiện có — bạn đang <b style="margin:0 3px">cập nhật</b> chứ không tạo mới';}
+  } else {
+    // Chưa có công nợ → tạo mới
+    editingId=null;
+    document.getElementById('debt-modal-title').textContent='Thêm công nợ mới';
+    document.getElementById('d-paid').value='';
+    document.getElementById('d-incurred').value='';
+    document.getElementById('d-deadline').value='';
+    document.getElementById('d-invoice').value='no';
+    document.getElementById('d-invoice-date').value='';
+    document.getElementById('d-note').value='';
+    calcDebtRemain();
+    if(hint){hint.style.display='flex';hint.innerHTML='<i class="fa-solid fa-plus-circle" style="color:var(--green)"></i> Chưa có công nợ cho hợp đồng này — sẽ <b style="margin:0 3px">tạo mới</b>';}
+  }
 }
 
 function openEditDebt(id){
@@ -2263,6 +2374,8 @@ function openWarrantyModal(){
   document.getElementById('w-dur-custom-wrap').style.display='none';
   document.getElementById('w-receivable').value='';
   document.getElementById('w-issues').value='';
+  const wh=document.getElementById('w-existing-hint');
+  if(wh)wh.style.display='none';
   document.getElementById('modal-warranty').classList.add('open');
 }
 
